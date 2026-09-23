@@ -1,4 +1,5 @@
 import { CheckCircle2, Circle, Database, Globe2, ShieldCheck, Sparkles, Target } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Badge, Button, PageHeader } from "../components/Ui";
 
 const connections = [
@@ -20,13 +21,15 @@ const autonomyRules = [
 ];
 
 export default function LaunchpadPage() {
+  const navigate = useNavigate();
+
   return (
     <>
       <PageHeader
         eyebrow="WORKSPACE LAUNCHPAD"
         title="Connect the business once. Let the AI learn the rest."
         description="This is the production setup surface for the autonomous marketing corporation: connect evidence, define the growth objective, set economic boundaries and decide what the AI may do without human approval."
-        actions={<Button><Sparkles size={16} /> Generate autonomous plan</Button>}
+        actions={<Button onClick={() => navigate("/ai-cmo")}><Sparkles size={16} /> Generate autonomous plan</Button>}
       />
 
       <section className="module-metrics">
@@ -67,7 +70,7 @@ export default function LaunchpadPage() {
       </section>
 
       <article className="panel table-panel">
-        <div className="panel-head"><div><span className="section-kicker">EVIDENCE FABRIC</span><h2>3. Connect the operating systems</h2></div><Button variant="secondary"><Database size={16} /> Add integration</Button></div>
+        <div className="panel-head"><div><span className="section-kicker">EVIDENCE FABRIC</span><h2>3. Connect the operating systems</h2></div><Button variant="secondary" onClick={() => navigate("/data")}><Database size={16} /> Add integration</Button></div>
         <div className="table-wrap borderless"><table>
           <thead><tr><th>System</th><th>Status</th><th>What the AI learns</th><th>Readiness</th></tr></thead>
           <tbody>{connections.map(([name, status, description], index) => <tr key={name}><td><strong>{name}</strong></td><td><Badge tone={status === "Connected" ? "success" : "warning"}>{status}</Badge></td><td>{description}</td><td>{index < 4 ? <CheckCircle2 size={16} /> : <Circle size={16} />}</td></tr>)}</tbody>
