@@ -6,12 +6,12 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public readonly status: number,
-    public readonly code?: string,
-    public readonly requestId?: string,
+    public readonly code?: string | undefined,
+    public readonly requestId?: string | undefined,
     public readonly details?: unknown,
-    public readonly operationId?: string,
-    public readonly retryable?: boolean,
-    public readonly fieldErrors?: ProblemDetails["fieldErrors"]
+    public readonly operationId?: string | undefined,
+    public readonly retryable?: boolean | undefined,
+    public readonly fieldErrors?: ProblemDetails["fieldErrors"] | undefined
   ) {
     super(message);
     this.name = "ApiError";
@@ -80,19 +80,23 @@ export async function apiRequest<T>(
   context?: RequestContext
 ): Promise<T> {
   const deadline = createDeadlineSignal(init.signal, context?.deadlineMs);
+  const { signal: _sourceSignal, ...initWithoutSignal } = init;
+  const effectiveSignal = deadline.signal ?? init.signal ?? undefined;
 
   try {
-    const response = await fetch(`${env.apiBaseUrl}${path}`, {
-      ...init,
-      signal: deadline.signal ?? init.signal,
+    const requestInit: RequestInit = {
+      ...initWithoutSignal,
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
         ...contextHeaders(context),
         ...init.headers
       },
-      credentials: "include"
-    });
+      credentials: "include",
+      ...(effectiveSignal ? { signal: effectiveSignal } : {})
+    };
+
+    const response = await fetch(`${env.apiBaseUrl}${path}`, requestInit);
 
     const requestId = response.headers.get("x-request-id") ?? undefined;
 
