@@ -1,5 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "../../../shared/api/queryKeys";
+import { useAuthoritativeMutation } from "../../../shared/mutations/useAuthoritativeMutation";
 import { toRequestContext, type AccessScope } from "../../../shared/scope/accessScope";
 import type { CreateCampaignInput } from "../schemas/campaign.schema";
 import { createCampaign, listCampaigns } from "../api/campaigns.api";
@@ -18,12 +19,27 @@ export function useCampaigns(scope: AccessScope | null) {
 export function useCreateCampaign(scope: AccessScope | null) {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (input: CreateCampaignInput) => {
+  return useAuthoritativeMutation({
+    mutationKey: scope ? [...queryKeys.campaigns(scope), "create"] : ["campaigns", "create", "scope-unavailable"],
+    ...(scope ? { scope } : {}),
+    execute: ({ variables, operation, signal }: {
+      variables: CreateCampaignInput;
+      operation: ReturnType<typeof import("../../../shared/mutations/operation").createOperationIdentity>;
+      signal: AbortSignal;
+    }) => {
       if (!scope) throw new Error("Workspace scope is not ready");
-      return createCampaign(input, toRequestContext(scope));
+
+      return createCampaign(
+        variables,
+        {
+          ...toRequestContext(scope),
+          operationId: operation.operationId,
+          idempotencyKey: operation.idempotencyKey
+        },
+        signal
+      );
     },
-    onSuccess: () => {
+    onConfirmed: () => {
       if (!scope) return;
       void queryClient.invalidateQueries({
         queryKey: queryKeys.campaigns(scope)
