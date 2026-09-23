@@ -6,6 +6,8 @@ import AuthPage from "./pages/AuthPage";
 import LaunchpadPage from "./pages/LaunchpadPage";
 import { useAuthStore } from "./features/auth/store/authStore";
 import { useSessionLifecycle } from "./compositions/session/useSessionLifecycle";
+import { WorkspaceBootstrapGate } from "./app/bootstrap/WorkspaceBootstrapGate";
+import { AppErrorBoundary } from "./shared/errors/AppErrorBoundary";
 import { hasPermission } from "./rbac";
 import { LoadingState } from "./shared/ui";
 import type { Permission, Role } from "./types";
@@ -49,7 +51,13 @@ function PermissionGate({
 }
 
 function LazyBoundary({ children }: { children: ReactNode }) {
-  return <Suspense fallback={<LoadingState label="Loading workspace module…" />}>{children}</Suspense>;
+  return (
+    <AppErrorBoundary>
+      <Suspense fallback={<LoadingState label="Loading workspace module…" />}>
+        {children}
+      </Suspense>
+    </AppErrorBoundary>
+  );
 }
 
 function AnonymousRoutes() {
@@ -90,13 +98,14 @@ export default function App() {
   }
 
   return (
-    <Shell
-      role={role}
-      onRoleChange={setRole}
-      userName={user?.displayName ?? "GrowthOS user"}
-      onSignOut={signOut}
-    >
-      <Routes>
+    <WorkspaceBootstrapGate>
+      <Shell
+        role={role}
+        onRoleChange={setRole}
+        userName={user?.displayName ?? "GrowthOS user"}
+        onSignOut={signOut}
+      >
+        <Routes>
         <Route path="/" element={<Navigate to="/launchpad" replace />} />
         <Route path="/auth/*" element={<Navigate to="/launchpad" replace />} />
 
@@ -214,8 +223,9 @@ export default function App() {
             </PermissionGate>
           }
         />
-        <Route path="*" element={<Navigate to="/command" replace />} />
-      </Routes>
-    </Shell>
+          <Route path="*" element={<Navigate to="/command" replace />} />
+        </Routes>
+      </Shell>
+    </WorkspaceBootstrapGate>
   );
 }
