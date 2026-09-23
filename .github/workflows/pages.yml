@@ -22,11 +22,17 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install
-      - name: Typecheck and build
-        run: npm run build
-      - name: Upload production bundle
+      - name: Verify architecture, type safety, production builds and budgets
+        run: npm run verify
+      - name: Upload customer production bundle
         uses: actions/upload-artifact@v4
         with:
-          name: growthos-frontend-dist
+          name: growthos-customer-frontend-dist
           path: ./dist
+          if-no-files-found: error
+      - name: Upload platform control production bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: growthos-platform-control-dist
+          path: ./dist-platform-admin
           if-no-files-found: error
