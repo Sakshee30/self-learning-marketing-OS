@@ -1,32 +1,14 @@
+import { customerNavigationRoutes } from "./app/router/routeRegistry";
 import type { Agent, ApprovalItem, Kpi, NavItem } from "./types";
 
-export const navItems: NavItem[] = [
-  { label: "Launchpad", path: "/launchpad", icon: "Settings2", section: "Start", permission: "workspace.manage" },
-  { label: "Command Center", path: "/command", icon: "Sparkles", section: "Operate" },
-  { label: "Business World Model", path: "/world-model", icon: "Globe2", section: "Think" },
-  { label: "Growth Opportunities", path: "/opportunities", icon: "Telescope", section: "Think" },
-  { label: "Revenue Intelligence", path: "/revenue", icon: "ChartNoAxesCombined", section: "Measure" },
-  { label: "Customers & Audiences", path: "/customers", icon: "Users", section: "Understand" },
-  { label: "Market Intelligence", path: "/market", icon: "Radar", section: "Understand" },
-  { label: "Campaigns", path: "/campaigns", icon: "Megaphone", section: "Execute", permission: "campaigns.write" },
-  { label: "Creative Studio", path: "/creative", icon: "Palette", section: "Execute", permission: "creative.write" },
-  { label: "SEO & GEO", path: "/organic", icon: "SearchCheck", section: "Execute" },
-  { label: "Social", path: "/social", icon: "MessageCircleMore", section: "Execute" },
-  { label: "Lifecycle", path: "/lifecycle", icon: "Workflow", section: "Execute" },
-  { label: "Experience & CRO", path: "/experiences", icon: "PanelsTopLeft", section: "Execute" },
-  { label: "Experiments", path: "/experiments", icon: "FlaskConical", section: "Learn" },
-  { label: "Automations", path: "/automations", icon: "Zap", section: "AI Workforce", permission: "automation.write" },
-  { label: "AI Agents", path: "/agents", icon: "Bot", section: "AI Workforce" },
-  { label: "Approvals", path: "/approvals", icon: "BadgeCheck", section: "AI Workforce", permission: "approvals.decide", badge: "4" },
-  { label: "Memory & Decisions", path: "/memory", icon: "BrainCircuit", section: "Learn" },
-  { label: "Digital Twin", path: "/digital-twin", icon: "ScanSearch", section: "Learn" },
-  { label: "Data & Integrations", path: "/data", icon: "Cable", section: "Platform", permission: "data.manage" },
-  { label: "Governance", path: "/governance", icon: "ShieldCheck", section: "Platform", permission: "governance.manage" },
-  { label: "Audit & Receipts", path: "/audit", icon: "ShieldCheck", section: "Platform", permission: "governance.manage" },
-  { label: "Team & Roles", path: "/team", icon: "UserRoundCog", section: "Workspace", permission: "team.manage" },
-  { label: "Billing & Usage", path: "/billing", icon: "CreditCard", section: "Workspace", permission: "billing.manage" },
-  { label: "Workspace Settings", path: "/settings", icon: "Settings2", section: "Workspace", permission: "workspace.manage" }
-];
+export const navItems: NavItem[] = customerNavigationRoutes.map((route) => ({
+  label: route.breadcrumb,
+  path: route.path,
+  icon: route.icon ?? "Sparkles",
+  section: route.section ?? "Workspace",
+  permission: route.permission,
+  badge: route.badge
+}));
 
 export const kpis: Kpi[] = [
   { label: "Revenue influenced", value: "$1.84M", delta: "+18.6%", direction: "up", hint: "Attributed + modeled" },
