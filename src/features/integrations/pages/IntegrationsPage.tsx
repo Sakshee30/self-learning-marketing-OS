@@ -107,7 +107,7 @@ const seedIntegrations: Integration[] = [
   }
 ];
 
-function statusTone(status: ConnectionStatus) {
+function statusTone(status: ConnectionStatus): "success" | "warning" | "danger" | "neutral" {
   if (status === "connected") return "success";
   if (status === "attention") return "warning";
   if (status === "setup_required") return "danger";
