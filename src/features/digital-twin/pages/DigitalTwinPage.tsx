@@ -9,6 +9,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { Button, FormField, Input, MetricCard, Panel, StatusBadge } from "../../../shared/ui";
+import { formatCurrency } from "../../../shared/i18n/format";
 
 type Scenario = {
   name: string;
@@ -20,7 +21,7 @@ type Scenario = {
 };
 
 function money(value: number) {
-  return "$" + Math.round(value).toLocaleString();
+  return formatCurrency(Math.round(value), "USD");
 }
 
 export default function DigitalTwinPage() {
