@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BadgeCheck,
   BrainCircuit,
@@ -18,6 +19,9 @@ import {
 import { GoalBuilder } from "../components/GoalBuilder";
 import type { CmoGoalInput } from "../schemas/goal.schema";
 import { Button, EvidenceViewer, MetricCard, Panel, Recommendation, StatusBadge } from "../../../shared/ui";
+import { useAccessScope } from "../../workspace/hooks/useAccessScope";
+import { DecisionJourney, GovernedExecutionLegend } from "../../../compositions/governed-execution/DecisionJourney";
+import { decisionBelongsToScope, useGovernedExecutionStore } from "../../../compositions/governed-execution/store";
 
 const initialGoal: CmoGoalInput = {
   objective: "Grow qualified pipeline without increasing blended CAC",
@@ -127,6 +131,10 @@ const strategies = [
 ] as const;
 
 export default function AiCmoPage() {
+  const navigate = useNavigate();
+  const accessScope = useAccessScope();
+  const governedDecision = useGovernedExecutionStore((state) => state.current);
+  const stageProposal = useGovernedExecutionStore((state) => state.stageProposal);
   const [goal, setGoal] = useState(initialGoal);
   const [goalBuilderOpen, setGoalBuilderOpen] = useState(false);
   const [researching, setResearching] = useState(false);
@@ -134,6 +142,25 @@ export default function AiCmoPage() {
 
   const governedActionCount = useMemo(() => strategies.length, []);
   const selected = strategies[selectedStrategy] ?? strategies[0];
+  const activeDecision =
+    decisionBelongsToScope(governedDecision, accessScope) ? governedDecision : null;
+
+  function simulateSelectedStrategy() {
+    if (!accessScope || !selected) return;
+
+    stageProposal(accessScope, {
+      title: selected.name,
+      goal: goal.objective,
+      rationale: selected.reason,
+      forecast: selected.forecast,
+      confidence: Number(selected.confidence.replace("%", "")),
+      risk: selected.risk,
+      approvalReason: selected.approval,
+      evidenceRefs: ["crm-quality", "channel-economics", "world-model"]
+    });
+
+    navigate("/digital-twin");
+  }
 
   return (
     <>
@@ -181,6 +208,23 @@ export default function AiCmoPage() {
         <MetricCard label="Spend ceiling" value={"$" + goal.spendCeiling.toLocaleString()} detail="Monthly maximum" icon={<CircleDollarSign size={18} />} />
         <MetricCard label="Governed actions" value={String(governedActionCount)} detail="Require human authority" icon={<BadgeCheck size={18} />} />
       </section>
+
+      {activeDecision ? (
+        <Panel className="mb-4 p-4">
+          <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <span className="type-overline text-slate-400">GOVERNED DECISION JOURNEY</span>
+              <h2 className="mt-1">{activeDecision.title}</h2>
+              <p className="mb-0 mt-1 max-w-3xl type-body text-growth-muted">
+                This is a frontend workflow artifact for the current workspace. It does not represent external execution.
+              </p>
+            </div>
+            <StatusBadge tone="accent">{activeDecision.stage.replaceAll("_", " ")}</StatusBadge>
+          </div>
+          <DecisionJourney stage={activeDecision.stage} />
+          <div className="mt-3"><GovernedExecutionLegend /></div>
+        </Panel>
+      ) : null}
 
       <Panel className="mb-4 overflow-hidden">
         <div className="grid gap-4 border-b border-growth-line bg-slate-50/70 p-5 lg:grid-cols-[1fr_auto] lg:items-start">
@@ -312,6 +356,19 @@ export default function AiCmoPage() {
                 }
               ]}
             />
+
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-violet-200 bg-violet-50 p-4">
+              <div>
+                <span className="type-overline text-violet-500">NEXT GOVERNED STEP</span>
+                <strong className="mt-1 block text-sm text-violet-950">Simulate this recommendation before any approval or execution.</strong>
+                <p className="mb-0 mt-1 type-caption text-violet-800">
+                  GrowthOS will carry the goal, evidence, forecast, confidence and approval reason into the Digital Twin.
+                </p>
+              </div>
+              <Button onClick={simulateSelectedStrategy} disabled={!accessScope}>
+                <Radar size={16} /> Simulate selected strategy
+              </Button>
+            </div>
 
             <div className="rounded-xl border border-growth-line bg-slate-50/70 p-3">
               <span className="type-overline text-slate-400">RECEIPT CONTRACT</span>
