@@ -33,7 +33,7 @@ export const createCampaignInputSchema = campaignSchema
     decisionReceiptId: true
   })
   .extend({
-    requiresHumanApproval: z.boolean().default(true)
+    requiresHumanApproval: z.boolean()
   });
 
 export type Campaign = z.infer<typeof campaignSchema>;
