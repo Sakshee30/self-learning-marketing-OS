@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "../../../shared/api/queryKeys";
 import { useAuthoritativeMutation } from "../../../shared/mutations/useAuthoritativeMutation";
+import type { OperationIdentity } from "../../../shared/mutations/operation";
 import { toRequestContext, type AccessScope } from "../../../shared/scope/accessScope";
 import type { CreateCampaignInput } from "../schemas/campaign.schema";
 import { createCampaign, listCampaigns } from "../api/campaigns.api";
@@ -24,7 +25,7 @@ export function useCreateCampaign(scope: AccessScope | null) {
     ...(scope ? { scope } : {}),
     execute: ({ variables, operation, signal }: {
       variables: CreateCampaignInput;
-      operation: ReturnType<typeof import("../../../shared/mutations/operation").createOperationIdentity>;
+      operation: OperationIdentity;
       signal: AbortSignal;
     }) => {
       if (!scope) throw new Error("Workspace scope is not ready");
