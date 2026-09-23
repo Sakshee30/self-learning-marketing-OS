@@ -283,7 +283,7 @@ export function Shell({
           </div>
         </header>
 
-        <main className="page-wrap" key={location.pathname}>{children}</main>
+        <main id="main-content" tabIndex={-1} className="page-wrap" key={location.pathname}>{children}</main>
       </div>
       {open && <button className="sidebar-overlay" aria-label="Close navigation" onClick={() => setOpen(false)} />}
       <AiCommandPalette open={commandOpen} onOpenChange={setCommandOpen} items={visibleItems} />
