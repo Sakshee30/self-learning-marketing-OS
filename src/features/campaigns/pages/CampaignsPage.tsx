@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { Button, FormField, Input, MetricCard, Panel, Select, StatusBadge, Tabs } from "../../../shared/ui";
 import { useZodForm } from "../../../shared/forms/useZodForm";
+import { useAccessScope } from "../../workspace/hooks/useAccessScope";
+import { useDirtyWork } from "../../../shared/drafts/useDirtyWork";
 import { formatCurrency } from "../../../shared/i18n/format";
 import {
   createCampaignInputSchema,
@@ -36,6 +38,7 @@ export default function CampaignsPage() {
   const [builderOpen, setBuilderOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("Overview");
   const [previewDrafts, setPreviewDrafts] = useState<PreviewCampaign[]>([]);
+  const accessScope = useAccessScope();
 
   const form = useZodForm<CreateCampaignInput>(createCampaignInputSchema, {
     defaultValues: {
@@ -48,6 +51,13 @@ export default function CampaignsPage() {
     }
   });
 
+  useDirtyWork({
+    id: "campaign-builder",
+    label: "Campaign builder draft",
+    dirty: builderOpen && form.formState.isDirty,
+    scope: accessScope
+  });
+
   const budget = form.watch("budget") || 0;
   const channels = form.watch("channels") || [];
 
@@ -57,6 +67,11 @@ export default function CampaignsPage() {
     const upside = Math.round(modeledRevenue * 1.28);
     return { modeledRevenue, conservative, upside };
   }, [budget]);
+
+  function closeBuilder() {
+    form.reset();
+    setBuilderOpen(false);
+  }
 
   function toggleChannel(channel: string) {
     const current = form.getValues("channels");
@@ -103,7 +118,7 @@ export default function CampaignsPage() {
                 The frontend prepares the campaign intent and simulation. It does not claim external publication until backend/provider confirmation exists.
               </p>
             </div>
-            <button type="button" className="icon-button" onClick={() => setBuilderOpen(false)} aria-label="Close campaign builder">
+            <button type="button" className="icon-button" onClick={closeBuilder} aria-label="Close campaign builder">
               <X size={18} />
             </button>
           </div>
@@ -204,7 +219,7 @@ export default function CampaignsPage() {
             </aside>
 
             <div className="flex justify-end gap-2 border-t border-growth-line pt-5 xl:col-span-2">
-              <Button type="button" variant="secondary" onClick={() => setBuilderOpen(false)}>Cancel</Button>
+              <Button type="button" variant="secondary" onClick={closeBuilder}>Cancel</Button>
               <Button type="submit"><ShieldCheck size={16} /> Prepare for approval</Button>
             </div>
           </form>
