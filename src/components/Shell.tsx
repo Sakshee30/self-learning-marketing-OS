@@ -12,6 +12,7 @@ import {
   CreditCard,
   FlaskConical,
   Globe2,
+  LogOut,
   Megaphone,
   Menu,
   MessageCircleMore,
@@ -64,13 +65,29 @@ const iconMap: Record<string, LucideIcon> = {
   Shield
 };
 
+function initials(name: string) {
+  const value = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+
+  return value || "GO";
+}
+
 export function Shell({
   role,
   onRoleChange,
+  userName,
+  onSignOut,
   children
 }: {
   role: Role;
   onRoleChange: (role: Role) => void;
+  userName: string;
+  onSignOut: () => void;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -174,9 +191,9 @@ export function Shell({
             </button>
             <div className="role-menu-wrap">
               <button className="profile-button" onClick={() => setRoleOpen((value) => !value)}>
-                <span className="avatar">SK</span>
+                <span className="avatar">{initials(userName)}</span>
                 <span className="profile-copy">
-                  <strong>Sakshee</strong>
+                  <strong>{userName}</strong>
                   <small>{roleLabel(role)}</small>
                 </span>
                 <ChevronDown size={15} />
@@ -197,6 +214,16 @@ export function Shell({
                       <small>{item.description}</small>
                     </button>
                   ))}
+                  <div className="my-1 border-t border-slate-100" />
+                  <button
+                    onClick={() => {
+                      setRoleOpen(false);
+                      onSignOut();
+                    }}
+                  >
+                    <span className="flex items-center gap-2"><LogOut size={14} /> Sign out</span>
+                    <small>End the current frontend preview session.</small>
+                  </button>
                 </div>
               )}
             </div>
