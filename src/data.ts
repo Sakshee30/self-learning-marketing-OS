@@ -16,7 +16,7 @@ export const navItems: NavItem[] = [
   { label: "Experiments", path: "/experiments", icon: "FlaskConical", section: "Learn" },
   { label: "Automations", path: "/automations", icon: "Zap", section: "AI Workforce", permission: "automation.write" },
   { label: "AI Agents", path: "/agents", icon: "Bot", section: "AI Workforce" },
-  { label: "Approvals", path: "/approvals", icon: "BadgeCheck", section: "AI Workforce", badge: "4" },
+  { label: "Approvals", path: "/approvals", icon: "BadgeCheck", section: "AI Workforce", permission: "approvals.decide", badge: "4" },
   { label: "Memory & Decisions", path: "/memory", icon: "BrainCircuit", section: "Learn" },
   { label: "Digital Twin", path: "/digital-twin", icon: "ScanSearch", section: "Learn" },
   { label: "Data & Integrations", path: "/data", icon: "Cable", section: "Platform", permission: "data.manage" },
