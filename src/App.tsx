@@ -2,7 +2,6 @@ import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { Shell } from "./components/Shell";
 import CommandCenter from "./pages/CommandCenter";
-import ApprovalsPage from "./pages/ApprovalsPage";
 import AutomationsPage from "./pages/AutomationsPage";
 import TeamPage from "./pages/TeamPage";
 import SuperAdminPage from "./pages/SuperAdminPage";
@@ -23,6 +22,7 @@ const IntegrationsPage = lazy(() => import("./features/integrations/pages/Integr
 const DigitalTwinPage = lazy(() => import("./features/digital-twin/pages/DigitalTwinPage"));
 const CreativeStudioPage = lazy(() => import("./features/creative/pages/CreativeStudioPage"));
 const ExperimentsPage = lazy(() => import("./features/experiments/pages/ExperimentsPage"));
+const ApprovalsPage = lazy(() => import("./features/approvals/pages/ApprovalsPage"));
 
 const moduleRoutes: Array<{ path: string; permission?: Permission }> = [
   { path: "/opportunities" },
@@ -140,7 +140,11 @@ export default function App() {
 
         <Route
           path="/approvals"
-          element={<PermissionGate role={role} permission="approvals.decide"><ApprovalsPage /></PermissionGate>}
+          element={
+            <PermissionGate role={role} permission="approvals.decide">
+              <LazyBoundary><ApprovalsPage /></LazyBoundary>
+            </PermissionGate>
+          }
         />
         <Route
           path="/automations"
