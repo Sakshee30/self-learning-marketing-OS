@@ -51,7 +51,7 @@ jobs:
           node-version: 22
       - name: Install website dependencies
         run: npm install
-      - name: Typecheck and build public website
+      - name: Verify website architecture, type safety and production build
         run: npm run check
       - name: Upload static website bundle
         uses: actions/upload-artifact@v4
