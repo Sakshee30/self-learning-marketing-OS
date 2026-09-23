@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   BadgeCheck,
@@ -28,6 +29,7 @@ const defaultGoal: CmoGoalInput = {
 };
 
 export default function CommandCenter() {
+  const navigate = useNavigate();
   const [goalBuilderOpen, setGoalBuilderOpen] = useState(false);
   const [activeGoal, setActiveGoal] = useState<CmoGoalInput>(defaultGoal);
   const [autonomyPaused, setAutonomyPaused] = useState(false);
@@ -158,7 +160,7 @@ export default function CommandCenter() {
               <p>27 high-value accounts show declining engagement but still have strong product fit.</p>
             </div>
           </div>
-          <button className="text-link">Open full reasoning <ArrowRight size={14} /></button>
+          <button className="text-link" type="button" onClick={() => navigate("/ai-cmo")}>Open full reasoning <ArrowRight size={14} /></button>
         </article>
       </section>
 
@@ -184,7 +186,7 @@ export default function CommandCenter() {
                     <span>{item.agent}</span><span>•</span><span>{item.impact}</span><span>•</span><span>{item.requestedAt}</span>
                   </div>
                 </div>
-                <button className="circle-next" aria-label={"Open approval " + item.id}><ArrowRight size={17} /></button>
+                <button className="circle-next" type="button" onClick={() => navigate("/approvals")} aria-label={"Open approval " + item.id}><ArrowRight size={17} /></button>
               </div>
             ))}
           </div>
@@ -221,7 +223,7 @@ export default function CommandCenter() {
             <span className="section-kicker">AI WORKFORCE</span>
             <h2>Your agents</h2>
           </div>
-          <button className="text-link">Manage agents <ArrowRight size={14} /></button>
+          <button className="text-link" type="button" onClick={() => navigate("/agents")}>Manage agents <ArrowRight size={14} /></button>
         </div>
         <div className="agent-grid">
           {agents.slice(0, 3).map((agent) => <AgentCard key={agent.name} agent={agent} />)}
