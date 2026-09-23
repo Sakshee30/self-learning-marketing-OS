@@ -1,8 +1,12 @@
 export { Button } from "./Button";
+export { DecisionReceipt, type DecisionReceiptData } from "./DecisionReceipt";
+export { EvidenceViewer, type EvidenceItem } from "./EvidenceViewer";
+export { ExecutionStatus } from "./ExecutionStatus";
 export { FormField } from "./FormField";
 export { Input } from "./Input";
 export { MetricCard } from "./MetricCard";
 export { Panel } from "./Panel";
+export { Recommendation } from "./Recommendation";
 export { Select } from "./Select";
 export { StatusBadge } from "./Status";
 export { EmptyState, ErrorState, LoadingState, Skeleton } from "./States";
