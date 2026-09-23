@@ -16,7 +16,7 @@ import { useAuthStore } from "../features/auth/store/authStore";
 type AuthMode = "sign-in" | "sign-up" | "forgot-password";
 
 function FieldError({ message }: { message?: string }) {
-  return message ? <span className="mt-1 block text-[9px] font-semibold text-red-600">{message}</span> : null;
+  return message ? <span className="mt-1 block text-xs font-semibold text-red-600">{message}</span> : null;
 }
 
 export default function AuthPage({ mode = "sign-in" }: { mode?: AuthMode }) {
@@ -36,6 +36,7 @@ export default function AuthPage({ mode = "sign-in" }: { mode?: AuthMode }) {
   });
 
   const enterWorkspace = () => navigate("/launchpad", { replace: true });
+  const enterOnboarding = () => navigate("/onboarding", { replace: true });
 
   const onSignIn = signInForm.handleSubmit((values) => {
     signInPreview(values);
@@ -44,7 +45,7 @@ export default function AuthPage({ mode = "sign-in" }: { mode?: AuthMode }) {
 
   const onSignUp = signUpForm.handleSubmit((values) => {
     signUpPreview(values);
-    enterWorkspace();
+    enterOnboarding();
   });
 
   const onForgot = forgotForm.handleSubmit(() => {
@@ -121,7 +122,7 @@ export default function AuthPage({ mode = "sign-in" }: { mode?: AuthMode }) {
                 <BrainCircuit size={17} /> Continue with enterprise SSO
               </button>
 
-              <p className="mt-4 text-center text-[9px]">
+              <p className="mt-4 text-center text-xs">
                 New to GrowthOS? <Link className="font-bold text-violet-700" to="/auth/sign-up">Create an account</Link>
               </p>
             </>
@@ -156,7 +157,7 @@ export default function AuthPage({ mode = "sign-in" }: { mode?: AuthMode }) {
                 <FieldError message={signUpForm.formState.errors.acceptTerms?.message} />
                 <Button type="submit">Create account <ArrowRight size={16} /></Button>
               </form>
-              <p className="mt-4 text-center text-[9px]">
+              <p className="mt-4 text-center text-xs">
                 Already have an account? <Link className="font-bold text-violet-700" to="/auth/sign-in">Sign in</Link>
               </p>
             </>
@@ -180,7 +181,7 @@ export default function AuthPage({ mode = "sign-in" }: { mode?: AuthMode }) {
                   <Button type="submit">Request reset link <ArrowRight size={16} /></Button>
                 </form>
               )}
-              <p className="mt-4 text-center text-[9px]">
+              <p className="mt-4 text-center text-xs">
                 <Link className="font-bold text-violet-700" to="/auth/sign-in">Back to sign in</Link>
               </p>
             </>
