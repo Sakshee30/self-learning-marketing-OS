@@ -1,9 +1,6 @@
 import { useMemo, useState } from "react";
 import {
-  AlertTriangle,
   Check,
-  Clock3,
-  FileCheck2,
   Filter,
   RefreshCw,
   ShieldCheck,
@@ -11,22 +8,15 @@ import {
 } from "lucide-react";
 import { approvals as seed } from "../../../data";
 import { Badge, Button, PageHeader, RiskBadge } from "../../../components/Ui";
-import { Panel, StatusBadge } from "../../../shared/ui";
+import {
+  EvidenceViewer,
+  ExecutionStatus,
+  StatusBadge
+} from "../../../shared/ui";
+import { createOperationIdentity } from "../../../shared/mutations/operation";
+import { operationLifecycleLabel } from "../../../shared/mutations/lifecycle";
 import type { ApprovalItem } from "../../../types";
 import type { ApprovalDecisionPreview, DecisionIntent } from "../types";
-
-function lifecycleLabel(decision?: ApprovalDecisionPreview) {
-  if (!decision) return "No decision submitted";
-  switch (decision.lifecycle) {
-    case "validating": return "Validating authority";
-    case "submitting": return "Awaiting backend confirmation";
-    case "confirmed_success": return "Confirmed";
-    case "confirmed_rejection": return "Rejected by backend";
-    case "conflict": return "Conflict";
-    case "outcome_unknown": return "Outcome unknown";
-    default: return "Ready";
-  }
-}
 
 function lifecycleTone(decision?: ApprovalDecisionPreview): "neutral" | "success" | "warning" | "danger" | "accent" {
   if (!decision) return "neutral";
@@ -45,7 +35,7 @@ export default function ApprovalsPage() {
   const selectedDecision = selected ? decisions[selected.id] : undefined;
 
   function stageDecision(id: string, intent: DecisionIntent) {
-    const requestId = crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
+    const operation = createOperationIdentity();
 
     setDecisions((current) => ({
       ...current,
@@ -54,7 +44,7 @@ export default function ApprovalsPage() {
         intent,
         lifecycle: "submitting",
         requestedAt: new Date().toISOString(),
-        requestId
+        operationId: operation.operationId
       }
     }));
   }
@@ -65,7 +55,11 @@ export default function ApprovalsPage() {
       if (!existing) return current;
       return {
         ...current,
-        [id]: { ...existing, lifecycle: "outcome_unknown" }
+        [id]: {
+          ...existing,
+          lifecycle: "outcome_unknown",
+          requestId: "preview-lost-ack"
+        }
       };
     });
   }
@@ -113,7 +107,7 @@ export default function ApprovalsPage() {
                   <div className="approval-master-line">
                     <strong>{item.title}</strong>
                     <StatusBadge tone={lifecycleTone(decision)}>
-                      {decision ? lifecycleLabel(decision) : item.status}
+                      {decision ? operationLifecycleLabel(decision.lifecycle) : item.status}
                     </StatusBadge>
                   </div>
                   <p>{item.agent}</p>
@@ -144,19 +138,21 @@ export default function ApprovalsPage() {
                 <div><span>Rollback</span><strong>Available</strong></div>
               </div>
 
-              <div className="reasoning-box">
+              <EvidenceViewer
+                title="Evidence behind this proposal"
+                items={[
+                  { id: "attribution", label: "Attribution model", source: "Revenue Intelligence", detail: "14-day holdout and CRM revenue reconciliation.", confidence: 94 },
+                  { id: "policy", label: "Policy evaluation", source: "Governance", detail: "Budget, brand, audience and frequency guardrails passed." },
+                  { id: "rollback", label: "Rollback plan", source: "Execution planner", detail: "The proposed change is reversible after provider confirmation." }
+                ]}
+              />
+
+              <div className="reasoning-box mt-4">
                 <div className="reasoning-title"><ShieldCheck size={18} /> Why AI recommends this</div>
                 <p>
-                  The recommendation passed budget, brand, audience, frequency and attribution policy checks.
                   The predicted upside remains positive under the conservative scenario, but execution changes a
                   material business lever, so policy requires human approval.
                 </p>
-                <div className="evidence-chips">
-                  <span>Attribution confidence 94%</span>
-                  <span>14-day holdout</span>
-                  <span>Spend guardrail passed</span>
-                  <span>Rollback plan attached</span>
-                </div>
               </div>
 
               <div className="impact-scenarios">
@@ -165,52 +161,30 @@ export default function ApprovalsPage() {
                 <div><span>Upside</span><strong>+12.6%</strong><small>Revenue lift</small></div>
               </div>
 
-              <Panel className="mb-4 p-4 shadow-none">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="flex gap-3">
-                    {selectedDecision?.lifecycle === "outcome_unknown"
-                      ? <AlertTriangle className="mt-0.5 text-amber-700" size={19} />
-                      : selectedDecision
-                        ? <Clock3 className="mt-0.5 text-violet-700" size={19} />
-                        : <FileCheck2 className="mt-0.5 text-slate-500" size={19} />}
-                    <div>
-                      <span className="section-kicker">DECISION MUTATION</span>
-                      <strong className="block text-sm">{lifecycleLabel(selectedDecision)}</strong>
-                      <p className="mb-0 mt-1 text-xs text-growth-muted">
-                        {selectedDecision
-                          ? "Intent: " + selectedDecision.intent + ". Request ID: " + selectedDecision.requestId
-                          : "No decision has been sent. Review evidence and choose an intent when ready."}
-                      </p>
-                    </div>
-                  </div>
-                  <StatusBadge tone={lifecycleTone(selectedDecision)}>{lifecycleLabel(selectedDecision)}</StatusBadge>
-                </div>
+              {selectedDecision ? (
+                <div className="mb-4 grid gap-3">
+                  <ExecutionStatus
+                    lifecycle={selectedDecision.lifecycle}
+                    operationId={selectedDecision.operationId}
+                    requestId={selectedDecision.requestId}
+                    message={
+                      selectedDecision.lifecycle === "submitting"
+                        ? `Intent: ${selectedDecision.intent}. The UI is waiting for authoritative acknowledgement and does not mark this decision completed.`
+                        : undefined
+                    }
+                  />
 
-                {selectedDecision?.lifecycle === "submitting" && (
-                  <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
-                    <strong className="text-xs text-amber-900">Waiting for authoritative acknowledgement</strong>
-                    <p className="mb-0 mt-1 text-xs text-amber-800">
-                      The UI deliberately does not change this approval to completed. When the backend exists it must return the durable approval state, receipt reference and execution eligibility.
-                    </p>
+                  {selectedDecision.lifecycle === "submitting" && (
                     <button
                       type="button"
-                      className="mt-2 text-xs font-semibold text-amber-900"
+                      className="justify-self-start text-xs font-semibold text-amber-900"
                       onClick={() => markUnknown(selected.id)}
                     >
                       Simulate lost acknowledgement
                     </button>
-                  </div>
-                )}
-
-                {selectedDecision?.lifecycle === "outcome_unknown" && (
-                  <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3">
-                    <strong className="text-xs text-red-900">Outcome is unknown—do not retry blindly</strong>
-                    <p className="mb-0 mt-1 text-xs text-red-800">
-                      A production client must reconcile using the idempotency/request ID before issuing another decision.
-                    </p>
-                  </div>
-                )}
-              </Panel>
+                  )}
+                </div>
+              ) : null}
 
               <div className="approval-actions">
                 {selectedDecision ? (
