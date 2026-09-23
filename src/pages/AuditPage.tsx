@@ -1,5 +1,8 @@
 import { Download, Filter, ShieldCheck } from "lucide-react";
 import { Badge, Button, PageHeader } from "../components/Ui";
+import { DecisionReceipt } from "../shared/ui";
+import { useAccessScope } from "../features/workspace/hooks/useAccessScope";
+import { decisionBelongsToScope, useGovernedExecutionStore } from "../compositions/governed-execution/store";
 
 const events = [
   ["21:36", "AI CMO", "Decision", "Recommended reallocating paid-search budget", "Approval requested", "High"],
@@ -11,6 +14,21 @@ const events = [
 ] as const;
 
 export default function AuditPage() {
+  const accessScope = useAccessScope();
+  const governedDecision = useGovernedExecutionStore((state) => state.current);
+  const activeDecision =
+    decisionBelongsToScope(governedDecision, accessScope) ? governedDecision : null;
+
+  const previewApprovalState = !activeDecision
+    ? "No active decision"
+    : activeDecision.stage === "approval_intent_submitted"
+      ? `${activeDecision.approvalIntent?.intent ?? "Decision"} intent submitted`
+      : activeDecision.stage === "approval_required"
+        ? "Human approval required"
+        : activeDecision.stage === "simulated"
+          ? "Simulation complete; approval not yet requested"
+          : "Proposal staged for simulation";
+
   return (
     <>
       <PageHeader
@@ -36,6 +54,26 @@ export default function AuditPage() {
           <tbody>{events.map(([time, actor, type, action, result, risk]) => <tr key={time + actor}><td>{time}</td><td><strong>{actor}</strong></td><td>{type}</td><td>{action}</td><td><Badge tone={result.includes("Blocked") ? "warning" : result.includes("Approved") || result.includes("Verified") || result.includes("updated") ? "success" : "accent"}>{result}</Badge></td><td><Badge tone={risk === "High" ? "danger" : risk === "Medium" ? "warning" : "neutral"}>{risk}</Badge></td></tr>)}</tbody>
         </table></div>
       </article>
+
+      {activeDecision ? (
+        <section className="mb-4">
+          <DecisionReceipt
+            mode="preview"
+            receipt={{
+              receiptId: `PREVIEW-${activeDecision.id.slice(0, 8)}`,
+              goal: activeDecision.goal,
+              actor: activeDecision.approvalIntent ? "Human approval intent" : "AI CMO",
+              evidenceCount: activeDecision.evidenceRefs.length + (activeDecision.simulation ? 1 : 0),
+              forecast: activeDecision.simulation
+                ? `Modeled pipeline ${activeDecision.simulation.modeledPipeline.toLocaleString()}`
+                : activeDecision.forecast,
+              policyVerdict: "approval_required",
+              approvalState: previewApprovalState,
+              verificationState: "pending"
+            }}
+          />
+        </section>
+      ) : null}
 
       <section className="content-grid">
         <article className="panel security-overview">
