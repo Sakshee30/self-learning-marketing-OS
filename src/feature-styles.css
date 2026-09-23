@@ -66,3 +66,9 @@
   .auth-form-card { padding: 22px; }
   .form-grid { grid-template-columns: 1fr; }
 }
+
+.module-tabs { margin: -6px 0 16px; display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.module-tabs::-webkit-scrollbar { display: none; }
+.module-tabs button { flex: 0 0 auto; height: 31px; padding: 0 10px; border: 1px solid #e5e5ee; border-radius: 8px; background: white; color: #7a7c8e; font-size: 8.5px; font-weight: 700; }
+.module-tabs button:hover { border-color: #ccc8ec; color: #5949c9; }
+.module-tabs button.active { color: #5745cc; background: #f2efff; border-color: #d8d1ff; box-shadow: inset 0 -2px 0 #6a58e8; }
