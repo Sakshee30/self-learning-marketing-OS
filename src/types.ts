@@ -25,9 +25,9 @@ export interface NavItem {
   path: string;
   icon: string;
   section: string;
-  permission?: Permission;
-  roles?: Role[];
-  badge?: string;
+  permission?: Permission | undefined;
+  roles?: Role[] | undefined;
+  badge?: string | undefined;
 }
 
 export interface Kpi {
