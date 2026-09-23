@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -21,7 +21,7 @@ import {
   type CompanyProfileInput,
   type GrowthSetupInput
 } from "./schemas/onboarding.schema";
-import { writeOnboardingPreview } from "./previewState";
+import { readOnboardingPreview, writeOnboardingPreview } from "./previewState";
 
 const steps = [
   "Company",
@@ -54,18 +54,23 @@ const autonomyRules = [
 
 export default function OnboardingPage() {
   const navigate = useNavigate();
+  const initialPreview = useMemo(() => readOnboardingPreview(), []);
   const setWorkspace = useWorkspaceStore((state) => state.setWorkspace);
   const completeOnboarding = useAuthStore((state) => state.completeOnboarding);
-  const [step, setStep] = useState(0);
-  const [connected, setConnected] = useState<string[]>([
-    "Website & product analytics",
-    "CRM & pipeline",
-    "Google Ads",
-    "Meta Ads"
-  ]);
+  const [step, setStep] = useState(() => Math.min(Math.max(initialPreview.currentStep, 0), steps.length - 1));
+  const [connected, setConnected] = useState<string[]>(() =>
+    initialPreview.connectedSystems.length
+      ? initialPreview.connectedSystems
+      : [
+          "Website & product analytics",
+          "CRM & pipeline",
+          "Google Ads",
+          "Meta Ads"
+        ]
+  );
 
   const companyForm = useZodForm<CompanyProfileInput>(companyProfileSchema, {
-    defaultValues: {
+    defaultValues: initialPreview.companyDraft ?? {
       organizationName: "Northstar Labs",
       workspaceName: "Production",
       website: "https://example.com",
@@ -77,7 +82,7 @@ export default function OnboardingPage() {
   });
 
   const growthForm = useZodForm<GrowthSetupInput>(growthSetupSchema, {
-    defaultValues: {
+    defaultValues: initialPreview.growthDraft ?? {
       objective: "Grow qualified pipeline while protecting contribution margin",
       target: "$5M qualified pipeline",
       horizonDays: 90,
@@ -90,6 +95,19 @@ export default function OnboardingPage() {
   const progress = Math.round(((step + 1) / steps.length) * 100);
   const company = companyForm.watch();
   const growth = growthForm.watch();
+
+  useEffect(() => {
+    writeOnboardingPreview({
+      completed: false,
+      currentStep: step,
+      completedSteps: Array.from(steps.slice(0, step)),
+      connectedSystems: connected,
+      companyDraft: company,
+      growthDraft: growth,
+      updatedAt: new Date().toISOString()
+    });
+  }, [company, connected, growth, step]);
+
 
   const readiness = useMemo(() => {
     const evidence = Math.min(100, 40 + connected.length * 10);
@@ -127,7 +145,11 @@ export default function OnboardingPage() {
   function complete() {
     writeOnboardingPreview({
       completed: true,
+      currentStep: steps.length - 1,
       completedSteps: [...steps],
+      connectedSystems: connected,
+      companyDraft: company,
+      growthDraft: growth,
       updatedAt: new Date().toISOString()
     });
     setWorkspace("org-northstar", "ws-production");
