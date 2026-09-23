@@ -49,8 +49,6 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: website/package-lock.json
       - name: Install website dependencies
         run: npm install
       - name: Typecheck and build public website
