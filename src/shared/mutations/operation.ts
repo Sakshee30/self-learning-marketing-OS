@@ -4,7 +4,7 @@ export type OperationIdentity = {
   operationId: string;
   idempotencyKey: string;
   createdAt: string;
-  scope?: AccessScope;
+  scope?: AccessScope | undefined;
 };
 
 function fallbackId() {
