@@ -14,6 +14,7 @@ import {
 import { Button, FormField, Input, MetricCard, Panel, Select, StatusBadge } from "../../shared/ui";
 import { useZodForm } from "../../shared/forms/useZodForm";
 import { useWorkspaceStore } from "../../shared/store/workspaceStore";
+import { useAuthStore } from "../auth/store/authStore";
 import {
   companyProfileSchema,
   growthSetupSchema,
@@ -54,6 +55,7 @@ const autonomyRules = [
 export default function OnboardingPage() {
   const navigate = useNavigate();
   const setWorkspace = useWorkspaceStore((state) => state.setWorkspace);
+  const completeOnboarding = useAuthStore((state) => state.completeOnboarding);
   const [step, setStep] = useState(0);
   const [connected, setConnected] = useState<string[]>([
     "Website & product analytics",
@@ -129,6 +131,7 @@ export default function OnboardingPage() {
       updatedAt: new Date().toISOString()
     });
     setWorkspace("org-northstar", "ws-production");
+    completeOnboarding();
     navigate("/launchpad", { replace: true });
   }
 
