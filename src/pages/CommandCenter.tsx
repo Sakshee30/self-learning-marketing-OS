@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   ArrowRight,
   BadgeCheck,
@@ -12,8 +13,25 @@ import {
 } from "lucide-react";
 import { agents, approvals, kpis } from "../data";
 import { AgentCard, Badge, Button, KpiCard, PageHeader, RiskBadge } from "../components/Ui";
+import { GoalBuilder } from "../features/ai-cmo/components/GoalBuilder";
+import type { CmoGoalInput } from "../features/ai-cmo/schemas/goal.schema";
+
+const defaultGoal: CmoGoalInput = {
+  objective: "Grow qualified pipeline without increasing blended CAC",
+  metric: "qualified_pipeline",
+  targetValue: "$4.4M qualified pipeline",
+  horizonDays: 90,
+  maxCac: 420,
+  spendCeiling: 180000,
+  riskTolerance: "balanced",
+  approvalPolicy: "governed"
+};
 
 export default function CommandCenter() {
+  const [goalBuilderOpen, setGoalBuilderOpen] = useState(false);
+  const [activeGoal, setActiveGoal] = useState<CmoGoalInput>(defaultGoal);
+  const [autonomyPaused, setAutonomyPaused] = useState(false);
+
   return (
     <>
       <PageHeader
@@ -22,11 +40,34 @@ export default function CommandCenter() {
         description="One operating view for what changed, what the AI decided, what it is doing next, and where your approval is required."
         actions={
           <>
-            <Button variant="secondary"><Pause size={16} /> Pause autonomy</Button>
-            <Button><Sparkles size={16} /> Set a growth goal</Button>
+            <Button variant="secondary" onClick={() => setAutonomyPaused((value) => !value)}>
+              {autonomyPaused ? <Play size={16} /> : <Pause size={16} />}
+              {autonomyPaused ? "Resume autonomy" : "Pause autonomy"}
+            </Button>
+            <Button onClick={() => setGoalBuilderOpen(true)}><Sparkles size={16} /> Set a growth goal</Button>
           </>
         }
       />
+
+      {goalBuilderOpen && (
+        <GoalBuilder
+          onClose={() => setGoalBuilderOpen(false)}
+          onSave={(goal) => {
+            setActiveGoal(goal);
+            setGoalBuilderOpen(false);
+          }}
+        />
+      )}
+
+      {autonomyPaused && (
+        <div className="mb-4 flex items-center justify-between gap-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <div>
+            <strong className="block text-sm text-amber-900">Autonomous execution is paused</strong>
+            <span className="text-xs text-amber-800">Research, analysis and monitoring continue. No autonomous execution will be started.</span>
+          </div>
+          <Badge tone="warning">Paused by human</Badge>
+        </div>
+      )}
 
       <section className="kpi-grid">
         {kpis.map((item) => <KpiCard key={item.label} item={item} />)}
@@ -37,24 +78,39 @@ export default function CommandCenter() {
           <div className="panel-head">
             <div>
               <span className="section-kicker">PRIMARY BUSINESS GOAL</span>
-              <h2>Grow qualified pipeline without increasing blended CAC</h2>
+              <h2>{activeGoal.objective}</h2>
             </div>
-            <Badge tone="success">On track</Badge>
+            <Badge tone={autonomyPaused ? "warning" : "success"}>{autonomyPaused ? "Paused" : "On track"}</Badge>
           </div>
 
           <div className="goal-progress">
             <div className="progress-header">
               <span>$3.2M influenced pipeline</span>
-              <strong>72% of $4.4M target</strong>
+              <strong>72% of {activeGoal.targetValue}</strong>
             </div>
             <div className="progress-track"><span style={{ width: "72%" }} /></div>
+          </div>
+
+          <div className="mb-4 grid gap-2 sm:grid-cols-3">
+            <div className="rounded-lg border border-growth-line bg-white p-3">
+              <span className="text-xs text-growth-muted">Maximum CAC</span>
+              <strong className="mt-1 block text-sm">{"$"}{activeGoal.maxCac.toLocaleString()}</strong>
+            </div>
+            <div className="rounded-lg border border-growth-line bg-white p-3">
+              <span className="text-xs text-growth-muted">Spend ceiling</span>
+              <strong className="mt-1 block text-sm">{"$"}{activeGoal.spendCeiling.toLocaleString()}</strong>
+            </div>
+            <div className="rounded-lg border border-growth-line bg-white p-3">
+              <span className="text-xs text-growth-muted">Approval posture</span>
+              <strong className="mt-1 block text-sm capitalize">{activeGoal.approvalPolicy.replaceAll("_", " ")}</strong>
+            </div>
           </div>
 
           <div className="loop-row">
             {[
               ["Goal", "Target", "Defined", Target],
               ["Decide", "Strategy", "Active", BrainCircuit],
-              ["Execute", "42 actions", "Running", Play],
+              ["Execute", autonomyPaused ? "Paused" : "42 actions", autonomyPaused ? "Held" : "Running", Play],
               ["Measure", "Revenue", "Live", CircleDollarSign],
               ["Learn", "7 signals", "Learning", TrendingUp],
               ["Correct", "4 approvals", "Waiting", BadgeCheck]
@@ -128,7 +184,7 @@ export default function CommandCenter() {
                     <span>{item.agent}</span><span>•</span><span>{item.impact}</span><span>•</span><span>{item.requestedAt}</span>
                   </div>
                 </div>
-                <button className="circle-next"><ArrowRight size={17} /></button>
+                <button className="circle-next" aria-label={"Open approval " + item.id}><ArrowRight size={17} /></button>
               </div>
             ))}
           </div>
