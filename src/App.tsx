@@ -11,6 +11,7 @@ import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
 import LaunchpadPage from "./pages/LaunchpadPage";
 import AuditPage from "./pages/AuditPage";
+import { useAuthStore } from "./features/auth/store/authStore";
 import { hasPermission } from "./rbac";
 import type { Permission, Role } from "./types";
 
@@ -47,27 +48,41 @@ function PermissionGate({
   return hasPermission(role, permission) ? <>{children}</> : <Navigate to="/command" replace />;
 }
 
+function AnonymousRoutes() {
+  return (
+    <Routes>
+      <Route path="/auth/sign-in" element={<AuthPage mode="sign-in" />} />
+      <Route path="/auth/sign-up" element={<AuthPage mode="sign-up" />} />
+      <Route path="/auth/forgot-password" element={<AuthPage mode="forgot-password" />} />
+      <Route path="*" element={<Navigate to="/auth/sign-in" replace />} />
+    </Routes>
+  );
+}
+
 export default function App() {
   const [role, setRole] = useState<Role>(() => (localStorage.getItem("growthos-role") as Role) || "owner");
-  const [signedIn, setSignedIn] = useState(() => sessionStorage.getItem("growthos-demo-auth") === "true");
+  const status = useAuthStore((state) => state.status);
+  const user = useAuthStore((state) => state.user);
+  const signOut = useAuthStore((state) => state.signOut);
 
   useEffect(() => {
     localStorage.setItem("growthos-role", role);
   }, [role]);
 
-  function enterDemo() {
-    sessionStorage.setItem("growthos-demo-auth", "true");
-    setSignedIn(true);
-  }
-
-  if (!signedIn) {
-    return <Routes><Route path="*" element={<AuthPage onEnter={enterDemo} />} /></Routes>;
+  if (status !== "authenticated") {
+    return <AnonymousRoutes />;
   }
 
   return (
-    <Shell role={role} onRoleChange={setRole}>
+    <Shell
+      role={role}
+      onRoleChange={setRole}
+      userName={user?.displayName ?? "GrowthOS user"}
+      onSignOut={signOut}
+    >
       <Routes>
         <Route path="/" element={<Navigate to="/launchpad" replace />} />
+        <Route path="/auth/*" element={<Navigate to="/launchpad" replace />} />
         <Route path="/launchpad" element={<PermissionGate role={role} permission="workspace.manage"><LaunchpadPage /></PermissionGate>} />
         <Route path="/command" element={<CommandCenter />} />
         <Route path="/approvals" element={<PermissionGate role={role} permission="approvals.decide"><ApprovalsPage /></PermissionGate>} />
