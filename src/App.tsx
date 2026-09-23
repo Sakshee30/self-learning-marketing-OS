@@ -12,6 +12,7 @@ import AuthPage from "./pages/AuthPage";
 import LaunchpadPage from "./pages/LaunchpadPage";
 import AuditPage from "./pages/AuditPage";
 import { useAuthStore } from "./features/auth/store/authStore";
+import OnboardingPage from "./features/onboarding/OnboardingPage";
 import { hasPermission } from "./rbac";
 import type { Permission, Role } from "./types";
 
@@ -83,6 +84,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/launchpad" replace />} />
         <Route path="/auth/*" element={<Navigate to="/launchpad" replace />} />
+        <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/launchpad" element={<PermissionGate role={role} permission="workspace.manage"><LaunchpadPage /></PermissionGate>} />
         <Route path="/command" element={<CommandCenter />} />
         <Route path="/approvals" element={<PermissionGate role={role} permission="approvals.decide"><ApprovalsPage /></PermissionGate>} />
