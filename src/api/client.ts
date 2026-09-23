@@ -2,9 +2,9 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3001
 
 export class ApiError extends Error {
   status: number;
-  requestId?: string;
+  requestId?: string | undefined;
 
-  constructor(message: string, status: number, requestId?: string) {
+  constructor(message: string, status: number, requestId?: string | undefined) {
     super(message);
     this.name = "ApiError";
     this.status = status;
