@@ -2,7 +2,6 @@ import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { Shell } from "./components/Shell";
 import CommandCenter from "./pages/CommandCenter";
-import AutomationsPage from "./pages/AutomationsPage";
 import TeamPage from "./pages/TeamPage";
 import SuperAdminPage from "./pages/SuperAdminPage";
 import ModulePage from "./pages/ModulePage";
@@ -31,12 +30,13 @@ const OrganicPage = lazy(() => import("./features/organic/pages/OrganicPage"));
 const SocialPage = lazy(() => import("./features/social/pages/SocialPage"));
 const LifecyclePage = lazy(() => import("./features/lifecycle/pages/LifecyclePage"));
 const ExperiencesPage = lazy(() => import("./features/experiences/pages/ExperiencesPage"));
+const AgentsPage = lazy(() => import("./features/agents/pages/AgentsPage"));
+const AutomationsPage = lazy(() => import("./features/automations/pages/AutomationsPage"));
+const MemoryPage = lazy(() => import("./features/memory/pages/MemoryPage"));
+const GovernancePage = lazy(() => import("./features/governance/pages/GovernancePage"));
+const BillingPage = lazy(() => import("./features/billing/pages/BillingPage"));
 
 const moduleRoutes: Array<{ path: string; permission?: Permission }> = [
-  { path: "/agents" },
-  { path: "/memory" },
-  { path: "/governance", permission: "governance.manage" },
-  { path: "/billing", permission: "billing.manage" }
 ];
 
 function PermissionGate({
@@ -145,6 +145,32 @@ export default function App() {
         <Route path="/social" element={<LazyBoundary><SocialPage /></LazyBoundary>} />
         <Route path="/lifecycle" element={<LazyBoundary><LifecyclePage /></LazyBoundary>} />
         <Route path="/experiences" element={<LazyBoundary><ExperiencesPage /></LazyBoundary>} />
+        <Route path="/agents" element={<LazyBoundary><AgentsPage /></LazyBoundary>} />
+        <Route
+          path="/automations"
+          element={
+            <PermissionGate role={role} permission="automation.write">
+              <LazyBoundary><AutomationsPage /></LazyBoundary>
+            </PermissionGate>
+          }
+        />
+        <Route path="/memory" element={<LazyBoundary><MemoryPage /></LazyBoundary>} />
+        <Route
+          path="/governance"
+          element={
+            <PermissionGate role={role} permission="governance.manage">
+              <LazyBoundary><GovernancePage /></LazyBoundary>
+            </PermissionGate>
+          }
+        />
+        <Route
+          path="/billing"
+          element={
+            <PermissionGate role={role} permission="billing.manage">
+              <LazyBoundary><BillingPage /></LazyBoundary>
+            </PermissionGate>
+          }
+        />
 
         <Route
           path="/approvals"
@@ -153,10 +179,6 @@ export default function App() {
               <LazyBoundary><ApprovalsPage /></LazyBoundary>
             </PermissionGate>
           }
-        />
-        <Route
-          path="/automations"
-          element={<PermissionGate role={role} permission="automation.write"><AutomationsPage /></PermissionGate>}
         />
         <Route
           path="/audit"
