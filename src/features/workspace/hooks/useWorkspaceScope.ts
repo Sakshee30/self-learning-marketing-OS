@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../auth/store/authStore";
 import { isQueryForScope, type AccessScope } from "../../../shared/scope/accessScope";
@@ -13,13 +13,6 @@ export function useWorkspaceScope() {
   const scopeGeneration = useWorkspaceStore((state) => state.scopeGeneration);
   const setWorkspace = useWorkspaceStore((state) => state.setWorkspace);
   const [switching, setSwitching] = useState(false);
-
-  useEffect(() => {
-    if (!organizationId || !workspaceId) {
-      const initial = previewWorkspaces[0];
-      if (initial) setWorkspace(initial.organizationId, initial.id);
-    }
-  }, [organizationId, workspaceId, setWorkspace]);
 
   const switchWorkspace = useCallback(
     async (targetWorkspaceId: string) => {
