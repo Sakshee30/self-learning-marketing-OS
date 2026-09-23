@@ -27,12 +27,12 @@ const OpportunitiesPage = lazy(() => import("./features/opportunities/pages/Oppo
 const RevenuePage = lazy(() => import("./features/revenue/pages/RevenuePage"));
 const CustomersPage = lazy(() => import("./features/customers/pages/CustomersPage"));
 const MarketPage = lazy(() => import("./features/market/pages/MarketPage"));
+const OrganicPage = lazy(() => import("./features/organic/pages/OrganicPage"));
+const SocialPage = lazy(() => import("./features/social/pages/SocialPage"));
+const LifecyclePage = lazy(() => import("./features/lifecycle/pages/LifecyclePage"));
+const ExperiencesPage = lazy(() => import("./features/experiences/pages/ExperiencesPage"));
 
 const moduleRoutes: Array<{ path: string; permission?: Permission }> = [
-  { path: "/organic" },
-  { path: "/social" },
-  { path: "/lifecycle" },
-  { path: "/experiences" },
   { path: "/agents" },
   { path: "/memory" },
   { path: "/governance", permission: "governance.manage" },
@@ -141,6 +141,10 @@ export default function App() {
         <Route path="/revenue" element={<LazyBoundary><RevenuePage /></LazyBoundary>} />
         <Route path="/customers" element={<LazyBoundary><CustomersPage /></LazyBoundary>} />
         <Route path="/market" element={<LazyBoundary><MarketPage /></LazyBoundary>} />
+        <Route path="/organic" element={<LazyBoundary><OrganicPage /></LazyBoundary>} />
+        <Route path="/social" element={<LazyBoundary><SocialPage /></LazyBoundary>} />
+        <Route path="/lifecycle" element={<LazyBoundary><LifecyclePage /></LazyBoundary>} />
+        <Route path="/experiences" element={<LazyBoundary><ExperiencesPage /></LazyBoundary>} />
 
         <Route
           path="/approvals"
