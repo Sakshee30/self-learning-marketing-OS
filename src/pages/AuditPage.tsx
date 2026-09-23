@@ -8,7 +8,7 @@ const events = [
   ["20:58", "Lifecycle Agent", "Draft", "Created churn-rescue journey for high-value accounts", "Draft only", "Medium"],
   ["20:31", "Policy Engine", "Guardrail", "Blocked publish because legal claim required review", "Blocked safely", "High"],
   ["19:42", "Creative Intelligence", "Learning", "Recorded proof-first creative as a verified pattern", "Memory updated", "Low"]
-];
+] as const;
 
 export default function AuditPage() {
   return (
