@@ -59,9 +59,9 @@ export function ExecutionStatus({
   message
 }: {
   lifecycle: OperationLifecycle;
-  operationId?: string;
-  requestId?: string;
-  message?: string;
+  operationId?: string | undefined;
+  requestId?: string | undefined;
+  message?: string | undefined;
 }) {
   const config = configuration[lifecycle];
   const Icon = config.icon;
