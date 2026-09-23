@@ -1,11 +1,11 @@
 export type RequestContext = {
-  organizationId?: string | null;
-  workspaceId?: string | null;
-  requestId?: string;
-  operationId?: string;
-  idempotencyKey?: string;
-  expectedVersion?: string;
-  deadlineMs?: number;
+  organizationId?: string | null | undefined;
+  workspaceId?: string | null | undefined;
+  requestId?: string | undefined;
+  operationId?: string | undefined;
+  idempotencyKey?: string | undefined;
+  expectedVersion?: string | undefined;
+  deadlineMs?: number | undefined;
 };
 
 export type ApiMeta = {
