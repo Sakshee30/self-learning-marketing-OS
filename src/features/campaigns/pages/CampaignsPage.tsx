@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button, FormField, Input, MetricCard, Panel, Select, StatusBadge } from "../../../shared/ui";
 import { useZodForm } from "../../../shared/forms/useZodForm";
+import { formatCurrency } from "../../../shared/i18n/format";
 import {
   createCampaignInputSchema,
   type CreateCampaignInput
@@ -268,7 +269,7 @@ export default function CampaignsPage() {
                   <tr key={item.id}>
                     <td><strong>{item.name}</strong><div className="text-[11px] text-slate-400">{item.id}</div></td>
                     <td>{item.channels.join(" · ") || "No channels selected"}</td>
-                    <td>{item.currency} {item.budget.toLocaleString()}</td>
+                    <td>{formatCurrency(item.budget, item.currency)}</td>
                     <td>Simulation only</td>
                     <td><StatusBadge tone="warning">{item.state === "approval_required" ? "Approval required" : "Draft"}</StatusBadge></td>
                   </tr>
