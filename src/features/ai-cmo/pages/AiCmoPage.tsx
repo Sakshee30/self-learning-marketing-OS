@@ -132,10 +132,7 @@ export default function AiCmoPage() {
   const [researching, setResearching] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState(0);
 
-  const governedActionCount = useMemo(
-    () => strategies.filter((strategy) => strategy.approval !== "None").length,
-    []
-  );
+  const governedActionCount = useMemo(() => strategies.length, []);
 
   return (
     <>
