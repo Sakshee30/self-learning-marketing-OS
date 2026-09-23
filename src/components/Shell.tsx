@@ -1,21 +1,68 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import * as Icons from "lucide-react";
 import {
+  BadgeCheck,
   Bell,
   Bot,
+  BrainCircuit,
+  Cable,
+  ChartNoAxesCombined,
   ChevronDown,
   Command,
+  CreditCard,
+  FlaskConical,
+  Globe2,
+  Megaphone,
   Menu,
+  MessageCircleMore,
+  Palette,
+  PanelsTopLeft,
+  Radar,
+  ScanSearch,
   Search,
+  SearchCheck,
+  Settings2,
+  Shield,
+  ShieldCheck,
   Sparkles,
-  X
+  Telescope,
+  UserRoundCog,
+  Users,
+  Workflow,
+  X,
+  Zap,
+  type LucideIcon
 } from "lucide-react";
 import { navItems } from "../data";
 import { hasPermission, roleDefinitions, roleLabel } from "../rbac";
 import type { Role } from "../types";
 
-const iconMap = Icons as unknown as Record<string, React.ComponentType<{ size?: number }>>;
+const iconMap: Record<string, LucideIcon> = {
+  Sparkles,
+  Globe2,
+  Telescope,
+  ChartNoAxesCombined,
+  Users,
+  Radar,
+  Megaphone,
+  Palette,
+  SearchCheck,
+  MessageCircleMore,
+  Workflow,
+  PanelsTopLeft,
+  FlaskConical,
+  Zap,
+  Bot,
+  BadgeCheck,
+  BrainCircuit,
+  ScanSearch,
+  Cable,
+  ShieldCheck,
+  UserRoundCog,
+  CreditCard,
+  Settings2,
+  Shield
+};
 
 export function Shell({
   role,
@@ -24,7 +71,7 @@ export function Shell({
 }: {
   role: Role;
   onRoleChange: (role: Role) => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [roleOpen, setRoleOpen] = useState(false);
@@ -121,7 +168,7 @@ export function Shell({
           </div>
 
           <div className="topbar-right">
-            <button className="icon-button notification">
+            <button className="icon-button notification" aria-label="Notifications">
               <Bell size={18} />
               <span />
             </button>
