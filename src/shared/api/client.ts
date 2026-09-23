@@ -1,6 +1,7 @@
 import { env } from "../config/env";
 import type { RequestContext } from "./contracts";
 import { problemDetailsSchema, type ProblemDetails } from "./problemDetails";
+import type { ZodType } from "zod";
 
 export class ApiError extends Error {
   constructor(
@@ -160,4 +161,29 @@ export async function apiRequest<T>(
   } finally {
     deadline.cleanup();
   }
+}
+
+
+export async function apiRequestValidated<T>(
+  path: string,
+  schema: ZodType<T>,
+  init: RequestInit = {},
+  context?: RequestContext
+): Promise<T> {
+  const payload = await apiRequest<unknown>(path, init, context);
+  const parsed = schema.safeParse(payload);
+
+  if (!parsed.success) {
+    throw new ApiError(
+      "The server returned data that does not match the expected contract.",
+      502,
+      "CONTRACT_INVALID",
+      context?.requestId,
+      parsed.error.flatten(),
+      context?.operationId,
+      false
+    );
+  }
+
+  return parsed.data;
 }
