@@ -8,5 +8,6 @@ export type ApprovalDecisionPreview = {
   intent: DecisionIntent;
   lifecycle: MutationLifecycle;
   requestedAt: string;
-  requestId: string;
+  operationId: string;
+  requestId?: string;
 };
