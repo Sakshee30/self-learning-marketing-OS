@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   BadgeCheck,
   Bell,
@@ -38,6 +38,9 @@ import {
 import { navItems } from "../data";
 import { useWorkspaceScope } from "../features/workspace/hooks/useWorkspaceScope";
 import { AiCommandPalette } from "../features/command-center/components/AiCommandPalette";
+import { useAccessScope } from "../features/workspace/hooks/useAccessScope";
+import { dirtyItemsForScope, useDirtyWorkStore } from "../shared/drafts/dirtyWorkStore";
+import { UnsavedWorkDialog } from "../shared/ui";
 import { hasPermission, roleDefinitions, roleLabel } from "../rbac";
 import type { Role } from "../types";
 
@@ -97,8 +100,22 @@ export function Shell({
   const [roleOpen, setRoleOpen] = useState(false);
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
+  const [pendingTransition, setPendingTransition] = useState<
+    | { kind: "route"; path: string }
+    | { kind: "workspace"; workspaceId: string }
+    | { kind: "signout" }
+    | null
+  >(null);
   const location = useLocation();
+  const navigate = useNavigate();
   const { organization, workspace, workspaces, switching, switchWorkspace } = useWorkspaceScope();
+  const accessScope = useAccessScope();
+  const dirtyRegistry = useDirtyWorkStore((state) => state.items);
+  const clearDirtyScope = useDirtyWorkStore((state) => state.clearScope);
+  const dirtyItems = useMemo(
+    () => dirtyItemsForScope(dirtyRegistry, accessScope),
+    [accessScope, dirtyRegistry]
+  );
 
   const visibleItems = useMemo(
     () =>
@@ -110,6 +127,40 @@ export function Shell({
   );
 
   const sections = Array.from(new Set(visibleItems.map((item) => item.section)));
+
+  function performTransition(transition: NonNullable<typeof pendingTransition>) {
+    if (transition.kind === "route") {
+      setOpen(false);
+      navigate(transition.path);
+      return;
+    }
+
+    if (transition.kind === "workspace") {
+      setWorkspaceOpen(false);
+      void switchWorkspace(transition.workspaceId);
+      return;
+    }
+
+    setRoleOpen(false);
+    onSignOut();
+  }
+
+  function requestTransition(transition: NonNullable<typeof pendingTransition>) {
+    if (dirtyItems.length > 0) {
+      setPendingTransition(transition);
+      return;
+    }
+
+    performTransition(transition);
+  }
+
+  function discardAndContinue() {
+    if (!pendingTransition) return;
+    if (accessScope) clearDirtyScope(accessScope);
+    const transition = pendingTransition;
+    setPendingTransition(null);
+    performTransition(transition);
+  }
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -155,7 +206,14 @@ export function Shell({
                     <NavLink
                       key={item.path}
                       to={item.path}
-                      onClick={() => setOpen(false)}
+                      onClick={(event) => {
+                        if (dirtyItems.length > 0) {
+                          event.preventDefault();
+                          requestTransition({ kind: "route", path: item.path });
+                          return;
+                        }
+                        setOpen(false);
+                      }}
                       className={({ isActive }) => "nav-item " + (isActive ? "active" : "")}
                     >
                       <Icon size={17} />
@@ -214,10 +272,7 @@ export function Shell({
                       type="button"
                       role="menuitem"
                       className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-slate-50"
-                      onClick={() => {
-                        setWorkspaceOpen(false);
-                        void switchWorkspace(item.id);
-                      }}
+                      onClick={() => requestTransition({ kind: "workspace", workspaceId: item.id })}
                     >
                       <div>
                         <strong className="block text-sm text-growth-ink">{item.name}</strong>
@@ -269,10 +324,7 @@ export function Shell({
                   ))}
                   <div className="my-1 border-t border-slate-100" />
                   <button
-                    onClick={() => {
-                      setRoleOpen(false);
-                      onSignOut();
-                    }}
+                    onClick={() => requestTransition({ kind: "signout" })}
                   >
                     <span className="flex items-center gap-2"><LogOut size={14} /> Sign out</span>
                     <small>End the current frontend preview session.</small>
@@ -287,6 +339,12 @@ export function Shell({
       </div>
       {open && <button className="sidebar-overlay" aria-label="Close navigation" onClick={() => setOpen(false)} />}
       <AiCommandPalette open={commandOpen} onOpenChange={setCommandOpen} items={visibleItems} />
+      <UnsavedWorkDialog
+        open={pendingTransition !== null}
+        items={dirtyItems.map((item) => ({ id: item.id, label: item.label }))}
+        onCancel={() => setPendingTransition(null)}
+        onDiscard={discardAndContinue}
+      />
     </div>
   );
 }
