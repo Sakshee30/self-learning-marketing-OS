@@ -2,6 +2,10 @@ export type RequestContext = {
   organizationId?: string | null;
   workspaceId?: string | null;
   requestId?: string;
+  operationId?: string;
+  idempotencyKey?: string;
+  expectedVersion?: string;
+  deadlineMs?: number;
 };
 
 export type ApiMeta = {
