@@ -45,6 +45,7 @@ Human authority remains explicit for material spend, bids, external publishing, 
 | Team & Roles | `src/features/team/` | Tenant-scoped roles/team surface | Authoritative membership/RBAC |
 | Billing & Usage | `src/features/billing/` | Plan/usage surface | Billing provider and usage ledger |
 | Workspace Settings | `src/features/settings/` | Workspace configuration surface | Durable settings and sensitive re-auth |
+| Public Website | `website/` | Separate Next.js static/prerendered public-site build | Marketing API for durable form submission and any dynamic content |
 | Platform Control | `frontend/platform-admin/` | Separate build/trust boundary | Control API and operational evidence |
 
 ## Cross-feature governed execution
@@ -67,6 +68,7 @@ The frontend deliberately stops before claiming authoritative execution. A simul
 
 - React + TypeScript + Vite customer SPA.
 - Separate platform-control Vite composition.
+- Separate Next.js public website composition and build.
 - TanStack Query server-state boundary.
 - Zustand for small browser-only state.
 - React Hook Form + Zod for feature-owned form validation.
