@@ -1,0 +1,42 @@
+[
+  {
+    "key": "home",
+    "path": "/",
+    "title": "GrowthOS — Self-Learning Marketing OS",
+    "description": "A governed AI marketing operating system that connects goals, evidence, prediction, simulation, human approval, execution, measurement, and learning.",
+    "navLabel": null,
+    "indexable": true
+  },
+  {
+    "key": "product",
+    "path": "/product",
+    "title": "Product",
+    "description": "Explore the GrowthOS product surfaces for command, decision intelligence, execution, learning, governance, approvals, integrations, and workspace operations.",
+    "navLabel": "Product",
+    "indexable": true
+  },
+  {
+    "key": "howItWorks",
+    "path": "/how-it-works",
+    "title": "How it works",
+    "description": "See how GrowthOS moves from business goals and evidence through prediction, simulation, human approval, execution, measurement, learning, and correction.",
+    "navLabel": "How it works",
+    "indexable": true
+  },
+  {
+    "key": "security",
+    "path": "/security",
+    "title": "Trust & control",
+    "description": "Review the current GrowthOS product principles for approvals, policy enforcement, workspace isolation, decision receipts, accessibility, and evidence-backed claims.",
+    "navLabel": "Trust & control",
+    "indexable": true
+  },
+  {
+    "key": "contact",
+    "path": "/contact",
+    "title": "Request access",
+    "description": "Request access to GrowthOS and tell the team which business outcome you want your marketing operating system to improve.",
+    "navLabel": "Request access",
+    "indexable": true
+  }
+]

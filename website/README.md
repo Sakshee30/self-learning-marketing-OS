@@ -16,17 +16,23 @@ The marketing website is built as a static Next.js export so already-published p
 
 ```text
 website/
-├── app/                    # public routes and route metadata
+├── app/                    # public routes and metadata routes
+├── config/
+│   └── site-routes.json    # canonical public route/SEO registry
+├── scripts/
+│   └── check-site.mjs      # route and release-structure validation
 ├── src/
 │   ├── components/         # reusable public-site components
-│   ├── content/            # approved product and navigation content
+│   ├── config/             # environment/configuration boundaries
+│   ├── content/            # approved product/navigation content
+│   ├── seo/                # metadata composition
 │   └── styles/             # design tokens and public-site styles
 ├── next.config.ts
 ├── package.json
 └── tsconfig.json
 ```
 
-Page files compose sections. Product wording lives in `src/content` where possible. Reusable visual and interaction behavior lives in `src/components`. The website does not import customer-product internals.
+Page files compose sections. Public route paths, titles, descriptions and indexability live in `config/site-routes.json`; navigation and SEO metadata derive from that registry. Reusable visual and interaction behavior lives in `src/components`. The website does not import customer-product internals.
 
 ## Development
 
@@ -41,11 +47,28 @@ Then open `http://localhost:3000`.
 ## Verification
 
 ```bash
+npm run architecture:check
 npm run typecheck
 npm run build
 ```
 
+Or run all three release checks with:
+
+```bash
+npm run check
+```
+
 The current configuration uses `output: "export"`. Production deployment can serve the generated `out/` directory from object storage/CDN infrastructure.
+
+## Public origin and SEO
+
+Set the canonical public origin at build time:
+
+```bash
+NEXT_PUBLIC_SITE_URL=https://www.your-domain.example
+```
+
+When the origin is configured, page metadata includes canonical URLs and the static build emits sitemap references using that origin. An invalid configured origin fails the build rather than silently publishing malformed canonical URLs. When no origin is configured, the build stays valid but deliberately omits absolute canonical and sitemap URLs.
 
 ## Contact form integration
 

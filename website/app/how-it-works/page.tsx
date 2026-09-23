@@ -1,14 +1,10 @@
-import type { Metadata } from "next";
 import { CtaBand } from "@/src/components/CtaBand";
 import { DecisionReceipt } from "@/src/components/DecisionReceipt";
 import { HumanControl } from "@/src/components/HumanControl";
 import { OperatingLoop } from "@/src/components/OperatingLoop";
+import { metadataFor } from "@/src/seo/metadata";
 
-export const metadata: Metadata = {
-  title: "How it works",
-  description:
-    "See how GrowthOS moves from business goals and evidence through prediction, simulation, human approval, execution, measurement, learning, and correction."
-};
+export const metadata = metadataFor("howItWorks");
 
 const stages = [
   {

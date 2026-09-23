@@ -1,11 +1,7 @@
-import type { Metadata } from "next";
 import { ContactForm } from "@/src/components/ContactForm";
+import { metadataFor } from "@/src/seo/metadata";
 
-export const metadata: Metadata = {
-  title: "Request access",
-  description:
-    "Request access to GrowthOS and tell the team which business outcome you want your marketing operating system to improve."
-};
+export const metadata = metadataFor("contact");
 
 export default function ContactPage() {
   return (

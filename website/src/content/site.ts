@@ -1,34 +1,40 @@
+import { routeByKey, type PublicRouteKey } from "@/src/content/routes";
+
+const primaryNavigationKeys: readonly PublicRouteKey[] = [
+  "product",
+  "howItWorks",
+  "security"
+];
+
 export const siteConfig = {
   name: "GrowthOS",
   descriptor: "Self-Learning Marketing OS",
-  description:
-    "A governed AI marketing operating system that connects goals, evidence, prediction, simulation, human approval, execution, measurement, and learning.",
-  navigation: [
-    { href: "/product", label: "Product" },
-    { href: "/how-it-works", label: "How it works" },
-    { href: "/security", label: "Trust & control" }
-  ],
+  description: routeByKey.home.description,
+  navigation: primaryNavigationKeys.map((key) => ({
+    href: routeByKey[key].path,
+    label: routeByKey[key].navLabel ?? routeByKey[key].title
+  })),
   primaryCta: {
-    href: "/contact",
-    label: "Request access"
+    href: routeByKey.contact.path,
+    label: routeByKey.contact.navLabel ?? routeByKey.contact.title
   }
-} as const;
+};
 
 export const footerGroups = [
   {
     title: "Product",
     links: [
-      { href: "/product", label: "Capabilities" },
-      { href: "/how-it-works", label: "Operating model" },
-      { href: "/security", label: "Trust & control" }
+      { href: routeByKey.product.path, label: "Capabilities" },
+      { href: routeByKey.howItWorks.path, label: "Operating model" },
+      { href: routeByKey.security.path, label: "Trust & control" }
     ]
   },
   {
     title: "Explore",
     links: [
-      { href: "/contact", label: "Request access" },
+      { href: routeByKey.contact.path, label: "Request access" },
       { href: "/#operating-loop", label: "Autonomous loop" },
       { href: "/#human-control", label: "Human approvals" }
     ]
   }
-] as const;
+];

@@ -1,12 +1,8 @@
-import type { Metadata } from "next";
 import { CtaBand } from "@/src/components/CtaBand";
 import { trustPrinciples } from "@/src/content/product";
+import { metadataFor } from "@/src/seo/metadata";
 
-export const metadata: Metadata = {
-  title: "Trust & control",
-  description:
-    "Review the current GrowthOS product principles for approvals, policy enforcement, workspace isolation, decision receipts, accessibility, and evidence-backed claims."
-};
+export const metadata = metadataFor("security");
 
 export default function SecurityPage() {
   return (

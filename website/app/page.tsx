@@ -5,6 +5,9 @@ import { DecisionReceipt } from "@/src/components/DecisionReceipt";
 import { HumanControl } from "@/src/components/HumanControl";
 import { OperatingLoop } from "@/src/components/OperatingLoop";
 import { ProductPreview } from "@/src/components/ProductPreview";
+import { metadataFor } from "@/src/seo/metadata";
+
+export const metadata = metadataFor("home");
 
 export default function HomePage() {
   return (

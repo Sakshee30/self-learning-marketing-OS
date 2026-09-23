@@ -1,12 +1,8 @@
-import type { Metadata } from "next";
 import { CapabilityGrid } from "@/src/components/CapabilityGrid";
 import { CtaBand } from "@/src/components/CtaBand";
+import { metadataFor } from "@/src/seo/metadata";
 
-export const metadata: Metadata = {
-  title: "Product",
-  description:
-    "Explore the GrowthOS product surfaces for command, decision intelligence, execution, learning, governance, approvals, integrations, and workspace operations."
-};
+export const metadata = metadataFor("product");
 
 export default function ProductPage() {
   return (

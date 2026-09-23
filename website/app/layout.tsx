@@ -1,32 +1,22 @@
 import type { Metadata } from "next";
 import { SiteFooter } from "@/src/components/SiteFooter";
 import { SiteHeader } from "@/src/components/SiteHeader";
+import { getSiteOrigin } from "@/src/config/site-origin";
+import { routeByKey } from "@/src/content/routes";
 import { siteConfig } from "@/src/content/site";
 import "@/src/styles/globals.css";
 
+const siteOrigin = getSiteOrigin();
+
 export const metadata: Metadata = {
+  ...(siteOrigin ? { metadataBase: siteOrigin } : {}),
   title: {
-    default: "GrowthOS — Self-Learning Marketing OS",
+    default: routeByKey.home.title,
     template: "%s | GrowthOS"
   },
   description: siteConfig.description,
-  applicationName: "GrowthOS",
-  category: "technology",
-  robots: {
-    index: true,
-    follow: true
-  },
-  openGraph: {
-    type: "website",
-    siteName: "GrowthOS",
-    title: "GrowthOS — Self-Learning Marketing OS",
-    description: siteConfig.description
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "GrowthOS — Self-Learning Marketing OS",
-    description: siteConfig.description
-  }
+  applicationName: siteConfig.name,
+  category: "technology"
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
