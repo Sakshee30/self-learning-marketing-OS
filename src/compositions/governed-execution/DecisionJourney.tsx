@@ -2,8 +2,6 @@ import {
   BadgeCheck,
   BrainCircuit,
   CheckCircle2,
-  CircleDollarSign,
-  Clock3,
   Play,
   Radar,
   ShieldCheck
@@ -80,10 +78,6 @@ export function GovernedExecutionLegend() {
       <div className="flex items-center gap-2">
         <Play className="text-slate-700" size={15} />
         <span className="type-caption">Execution waits for backend confirmation.</span>
-      </div>
-      <div className="hidden items-center gap-2">
-        <CircleDollarSign size={15} />
-        <Clock3 size={15} />
       </div>
     </div>
   );
