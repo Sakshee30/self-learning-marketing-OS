@@ -133,6 +133,7 @@ export default function AiCmoPage() {
   const [selectedStrategy, setSelectedStrategy] = useState(0);
 
   const governedActionCount = useMemo(() => strategies.length, []);
+  const selected = strategies[selectedStrategy] ?? strategies[0];
 
   return (
     <>
@@ -268,7 +269,7 @@ export default function AiCmoPage() {
 
         <Panel className="p-5">
           <span className="section-kicker">DECISION BRIEF</span>
-          <h2>{strategies[selectedStrategy].name}</h2>
+          <h2>{selected.name}</h2>
           <p className="mt-2">
             The AI CMO is not claiming execution. This surface explains the proposal that will be simulated
             and, where required, placed into the Human Approval Center.
@@ -276,13 +277,13 @@ export default function AiCmoPage() {
 
           <div className="mt-4 grid gap-4">
             <Recommendation
-              title={strategies[selectedStrategy].name}
-              rationale={strategies[selectedStrategy].reason}
-              confidence={Number(strategies[selectedStrategy].confidence.replace("%", ""))}
-              impact={strategies[selectedStrategy].forecast}
+              title={selected.name}
+              rationale={selected.reason}
+              confidence={Number(selected.confidence.replace("%", ""))}
+              impact={selected.forecast}
             >
               <StatusBadge tone="warning">
-                Approval: {strategies[selectedStrategy].approval}
+                Approval: {selected.approval}
               </StatusBadge>
             </Recommendation>
 
