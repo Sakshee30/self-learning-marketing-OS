@@ -10,7 +10,7 @@ import {
   Target,
   X
 } from "lucide-react";
-import { Button, FormField, Input, MetricCard, Panel, Select, StatusBadge } from "../../../shared/ui";
+import { Button, FormField, Input, MetricCard, Panel, Select, StatusBadge, Tabs } from "../../../shared/ui";
 import { useZodForm } from "../../../shared/forms/useZodForm";
 import { formatCurrency } from "../../../shared/i18n/format";
 import {
@@ -227,20 +227,19 @@ export default function CampaignsPage() {
         <MetricCard label="Blended ROAS" value="5.4×" detail="Incrementality adjusted" icon={<BarChart3 size={18} />} />
       </section>
 
-      <div className="module-tabs" role="tablist" aria-label="Campaign sections">
-        {["Overview", "Paid media", "AdSync", "Budgets", "UTM", "Conversion activation"].map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            className={activeTab === tab ? "active" : ""}
-            onClick={() => setActiveTab(tab)}
-            role="tab"
-            aria-selected={activeTab === tab}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        label="Campaign sections"
+        value={activeTab}
+        onValueChange={setActiveTab}
+        items={[
+          { value: "Overview", label: "Overview" },
+          { value: "Paid media", label: "Paid media" },
+          { value: "AdSync", label: "AdSync" },
+          { value: "Budgets", label: "Budgets" },
+          { value: "UTM", label: "UTM" },
+          { value: "Conversion activation", label: "Conversion activation" }
+        ]}
+      />
 
       <section className="grid gap-4 xl:grid-cols-[1.15fr_.85fr]">
         <Panel className="p-5">
