@@ -2,10 +2,10 @@ import { Component, type ErrorInfo, type ReactNode } from "react";
 import { ErrorState } from "../ui";
 
 type Props = { children: ReactNode };
-type State = { hasError: boolean; message?: string };
+type State = { hasError: boolean; message: string | undefined };
 
 export class AppErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false };
+  state: State = { hasError: false, message: undefined };
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, message: error.message };
