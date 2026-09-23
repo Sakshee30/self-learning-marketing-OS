@@ -13,7 +13,13 @@ export type DecisionReceiptData = {
   verificationState: "pending" | "verified" | "failed";
 };
 
-export function DecisionReceipt({ receipt }: { receipt: DecisionReceiptData }) {
+export function DecisionReceipt({
+  receipt,
+  mode = "confirmed"
+}: {
+  receipt: DecisionReceiptData;
+  mode?: "preview" | "confirmed";
+}) {
   const policyTone =
     receipt.policyVerdict === "allow"
       ? "success"
@@ -29,12 +35,18 @@ export function DecisionReceipt({ receipt }: { receipt: DecisionReceiptData }) {
             <FileCheck2 size={17} />
           </span>
           <div>
-            <span className="type-overline text-slate-400">DECISION RECEIPT</span>
+            <span className="type-overline text-slate-400">{mode === "preview" ? "RECEIPT PREVIEW" : "DECISION RECEIPT"}</span>
             <strong className="mt-1 block text-sm">{receipt.receiptId}</strong>
           </div>
         </div>
         <StatusBadge tone={policyTone}>{receipt.policyVerdict.replaceAll("_", " ")}</StatusBadge>
       </div>
+
+      {mode === "preview" ? (
+        <p className="mb-0 mt-3 type-caption text-growth-muted">
+          Frontend preview only. A durable receipt exists only after the backend confirms the governed operation.
+        </p>
+      ) : null}
 
       <dl className="mt-4 grid gap-3 sm:grid-cols-2">
         <div><dt className="type-caption text-growth-muted">Goal</dt><dd className="m-0 mt-1 text-xs font-semibold">{receipt.goal}</dd></div>
