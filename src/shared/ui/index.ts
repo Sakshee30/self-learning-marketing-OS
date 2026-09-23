@@ -12,3 +12,5 @@ export { Select } from "./Select";
 export { StatusBadge } from "./Status";
 export { Tabs, type TabItem } from "./Tabs";
 export { EmptyState, ErrorState, LoadingState, Skeleton } from "./States";
+
+export { UnsavedWorkDialog } from "./UnsavedWorkDialog";
