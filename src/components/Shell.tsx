@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   BadgeCheck,
@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { navItems } from "../data";
 import { useWorkspaceScope } from "../features/workspace/hooks/useWorkspaceScope";
+import { AiCommandPalette } from "../features/command-center/components/AiCommandPalette";
 import { hasPermission, roleDefinitions, roleLabel } from "../rbac";
 import type { Role } from "../types";
 
@@ -95,6 +96,7 @@ export function Shell({
   const [open, setOpen] = useState(false);
   const [roleOpen, setRoleOpen] = useState(false);
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
   const location = useLocation();
   const { organization, workspace, workspaces, switching, switchWorkspace } = useWorkspaceScope();
 
@@ -108,6 +110,18 @@ export function Shell({
   );
 
   const sections = Array.from(new Set(visibleItems.map((item) => item.section)));
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setCommandOpen(true);
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   return (
     <div className="app-shell">
@@ -123,7 +137,7 @@ export function Shell({
           </button>
         </div>
 
-        <button className="ask-ai" type="button">
+        <button className="ask-ai" type="button" onClick={() => setCommandOpen(true)}>
           <Command size={17} />
           <span>Ask AI CMO</span>
           <kbd>⌘ K</kbd>
@@ -219,7 +233,7 @@ export function Shell({
 
           <div className="topbar-center">
             <Search size={17} />
-            <input aria-label="Search" placeholder="Search customers, campaigns, decisions..." />
+            <input aria-label="Search" placeholder="Search customers, campaigns, decisions..." readOnly onFocus={() => setCommandOpen(true)} />
             <kbd>⌘ /</kbd>
           </div>
 
@@ -272,6 +286,7 @@ export function Shell({
         <main className="page-wrap" key={location.pathname}>{children}</main>
       </div>
       {open && <button className="sidebar-overlay" aria-label="Close navigation" onClick={() => setOpen(false)} />}
+      <AiCommandPalette open={commandOpen} onOpenChange={setCommandOpen} items={visibleItems} />
     </div>
   );
 }
