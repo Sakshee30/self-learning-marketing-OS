@@ -9,6 +9,8 @@ import SuperAdminPage from "./pages/SuperAdminPage";
 import ModulePage from "./pages/ModulePage";
 import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
+import LaunchpadPage from "./pages/LaunchpadPage";
+import AuditPage from "./pages/AuditPage";
 import { hasPermission } from "./rbac";
 import type { Permission, Role } from "./types";
 
@@ -65,10 +67,12 @@ export default function App() {
   return (
     <Shell role={role} onRoleChange={setRole}>
       <Routes>
-        <Route path="/" element={<Navigate to="/command" replace />} />
+        <Route path="/" element={<Navigate to="/launchpad" replace />} />
+        <Route path="/launchpad" element={<PermissionGate role={role} permission="workspace.manage"><LaunchpadPage /></PermissionGate>} />
         <Route path="/command" element={<CommandCenter />} />
         <Route path="/approvals" element={<PermissionGate role={role} permission="approvals.decide"><ApprovalsPage /></PermissionGate>} />
         <Route path="/automations" element={<PermissionGate role={role} permission="automation.write"><AutomationsPage /></PermissionGate>} />
+        <Route path="/audit" element={<PermissionGate role={role} permission="governance.manage"><AuditPage /></PermissionGate>} />
         <Route path="/team" element={<PermissionGate role={role} permission="team.manage"><TeamPage /></PermissionGate>} />
         <Route path="/settings" element={<PermissionGate role={role} permission="workspace.manage"><SettingsPage /></PermissionGate>} />
         <Route path="/super-admin" element={role === "super_admin" ? <SuperAdminPage /> : <Navigate to="/command" replace />} />
