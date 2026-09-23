@@ -23,12 +23,12 @@ const DigitalTwinPage = lazy(() => import("./features/digital-twin/pages/Digital
 const CreativeStudioPage = lazy(() => import("./features/creative/pages/CreativeStudioPage"));
 const ExperimentsPage = lazy(() => import("./features/experiments/pages/ExperimentsPage"));
 const ApprovalsPage = lazy(() => import("./features/approvals/pages/ApprovalsPage"));
+const OpportunitiesPage = lazy(() => import("./features/opportunities/pages/OpportunitiesPage"));
+const RevenuePage = lazy(() => import("./features/revenue/pages/RevenuePage"));
+const CustomersPage = lazy(() => import("./features/customers/pages/CustomersPage"));
+const MarketPage = lazy(() => import("./features/market/pages/MarketPage"));
 
 const moduleRoutes: Array<{ path: string; permission?: Permission }> = [
-  { path: "/opportunities" },
-  { path: "/revenue" },
-  { path: "/customers" },
-  { path: "/market" },
   { path: "/organic" },
   { path: "/social" },
   { path: "/lifecycle" },
@@ -137,6 +137,10 @@ export default function App() {
           path="/experiments"
           element={<LazyBoundary><ExperimentsPage /></LazyBoundary>}
         />
+        <Route path="/opportunities" element={<LazyBoundary><OpportunitiesPage /></LazyBoundary>} />
+        <Route path="/revenue" element={<LazyBoundary><RevenuePage /></LazyBoundary>} />
+        <Route path="/customers" element={<LazyBoundary><CustomersPage /></LazyBoundary>} />
+        <Route path="/market" element={<LazyBoundary><MarketPage /></LazyBoundary>} />
 
         <Route
           path="/approvals"
