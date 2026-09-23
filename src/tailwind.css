@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+  --color-growth-bg: #f6f7fb;
+  --color-growth-surface: #ffffff;
+  --color-growth-ink: #18192b;
+  --color-growth-muted: #707287;
+  --color-growth-line: #e9e9f1;
+  --color-growth-accent: #6757e8;
+  --color-growth-accent-soft: #f0edff;
+  --color-growth-success: #138a5b;
+  --color-growth-warning: #ad6a00;
+  --color-growth-danger: #bd3a4a;
+}
