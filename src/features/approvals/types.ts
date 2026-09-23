@@ -1,13 +1,7 @@
-export type DecisionIntent = "approve" | "reject";
+import type { OperationLifecycle } from "../../shared/mutations/lifecycle";
 
-export type MutationLifecycle =
-  | "idle"
-  | "validating"
-  | "submitting"
-  | "confirmed_success"
-  | "confirmed_rejection"
-  | "conflict"
-  | "outcome_unknown";
+export type DecisionIntent = "approve" | "reject";
+export type MutationLifecycle = OperationLifecycle;
 
 export type ApprovalDecisionPreview = {
   approvalId: string;
