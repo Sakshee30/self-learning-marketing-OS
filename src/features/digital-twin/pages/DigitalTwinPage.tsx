@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   BrainCircuit,
@@ -10,6 +11,9 @@ import {
 } from "lucide-react";
 import { Button, FormField, Input, MetricCard, Panel, StatusBadge } from "../../../shared/ui";
 import { formatCurrency } from "../../../shared/i18n/format";
+import { useAccessScope } from "../../workspace/hooks/useAccessScope";
+import { DecisionJourney, GovernedExecutionLegend } from "../../../compositions/governed-execution/DecisionJourney";
+import { decisionBelongsToScope, useGovernedExecutionStore } from "../../../compositions/governed-execution/store";
 
 type Scenario = {
   name: string;
@@ -25,6 +29,11 @@ function money(value: number) {
 }
 
 export default function DigitalTwinPage() {
+  const navigate = useNavigate();
+  const accessScope = useAccessScope();
+  const governedDecision = useGovernedExecutionStore((state) => state.current);
+  const attachSimulation = useGovernedExecutionStore((state) => state.attachSimulation);
+  const requireApproval = useGovernedExecutionStore((state) => state.requireApproval);
   const [budgetChange, setBudgetChange] = useState(20);
   const [conversionLift, setConversionLift] = useState(0.6);
   const [lifecycleLift, setLifecycleLift] = useState(18);
@@ -68,6 +77,26 @@ export default function DigitalTwinPage() {
     [scenarios]
   );
 
+  const activeDecision =
+    decisionBelongsToScope(governedDecision, accessScope) ? governedDecision : null;
+
+  function sendBestScenarioToApproval() {
+    if (!accessScope || !activeDecision || !best || !submitted) return;
+
+    attachSimulation(activeDecision.id, accessScope, {
+      scenarioName: best.name,
+      modeledPipeline: best.pipeline,
+      incrementalSpend: best.incrementalSpend,
+      confidence: best.confidence,
+      risk: best.risk,
+      approvalRequired: best.approvalRequired,
+      simulatedAt: new Date().toISOString()
+    });
+
+    requireApproval(activeDecision.id, accessScope);
+    navigate("/approvals");
+  }
+
   return (
     <>
       <header className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -81,6 +110,30 @@ export default function DigitalTwinPage() {
         </div>
         <Button onClick={() => setSubmitted(true)}><Play size={16} /> Run scenario set</Button>
       </header>
+
+      {activeDecision ? (
+        <Panel className="mb-4 p-4">
+          <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <span className="type-overline text-slate-400">STRATEGY FROM AI CMO</span>
+              <h2 className="mt-1">{activeDecision.title}</h2>
+              <p className="mb-0 mt-1 max-w-3xl type-body text-growth-muted">
+                Goal: {activeDecision.goal}. Forecast: {activeDecision.forecast}. Approval trigger: {activeDecision.approvalReason}.
+              </p>
+            </div>
+            <StatusBadge tone="warning">{activeDecision.risk} risk</StatusBadge>
+          </div>
+          <DecisionJourney stage={activeDecision.stage} />
+          <div className="mt-3"><GovernedExecutionLegend /></div>
+        </Panel>
+      ) : (
+        <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <strong className="text-sm text-growth-ink">Standalone simulation mode</strong>
+          <p className="mb-0 mt-1 type-caption text-growth-muted">
+            Open a recommendation from AI CMO to bind this simulation to a governed decision journey.
+          </p>
+        </div>
+      )}
 
       {submitted && (
         <div className="mb-4 flex items-start justify-between gap-4 rounded-xl border border-violet-200 bg-violet-50 p-4">
@@ -262,8 +315,13 @@ export default function DigitalTwinPage() {
                   Sending a scenario to execution creates an approval intent. The simulation itself never
                   authorizes spend, publishing, customer contact or production changes.
                 </p>
-                <Button className="mt-4 w-full" variant="secondary">
-                  Send best scenario to AI CMO <ArrowRight size={15} />
+                <Button
+                  className="mt-4 w-full"
+                  variant="secondary"
+                  disabled={!activeDecision || !submitted}
+                  onClick={sendBestScenarioToApproval}
+                >
+                  Send best scenario to Approval Center <ArrowRight size={15} />
                 </Button>
               </aside>
             </div>
