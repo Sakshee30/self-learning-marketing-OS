@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  customer-and-control:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
-      - name: Install dependencies
+      - name: Install customer/control dependencies
         run: npm install
       - name: Verify architecture, type safety, production builds and budgets
         run: npm run verify
@@ -35,4 +35,29 @@ jobs:
         with:
           name: growthos-platform-control-dist
           path: ./dist-platform-admin
+          if-no-files-found: error
+
+  public-website:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+      - name: Install website dependencies
+        run: npm install
+      - name: Typecheck and build public website
+        run: npm run check
+      - name: Upload static website bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: growthos-public-website-out
+          path: ./website/out
           if-no-files-found: error
