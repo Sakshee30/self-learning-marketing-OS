@@ -1,6 +1,7 @@
 import type { Agent, ApprovalItem, Kpi, NavItem } from "./types";
 
 export const navItems: NavItem[] = [
+  { label: "Launchpad", path: "/launchpad", icon: "Settings2", section: "Start", permission: "workspace.manage" },
   { label: "Command Center", path: "/command", icon: "Sparkles", section: "Operate" },
   { label: "Business World Model", path: "/world-model", icon: "Globe2", section: "Think" },
   { label: "Growth Opportunities", path: "/opportunities", icon: "Telescope", section: "Think" },
@@ -21,6 +22,7 @@ export const navItems: NavItem[] = [
   { label: "Digital Twin", path: "/digital-twin", icon: "ScanSearch", section: "Learn" },
   { label: "Data & Integrations", path: "/data", icon: "Cable", section: "Platform", permission: "data.manage" },
   { label: "Governance", path: "/governance", icon: "ShieldCheck", section: "Platform", permission: "governance.manage" },
+  { label: "Audit & Receipts", path: "/audit", icon: "ShieldCheck", section: "Platform", permission: "governance.manage" },
   { label: "Team & Roles", path: "/team", icon: "UserRoundCog", section: "Workspace", permission: "team.manage" },
   { label: "Billing & Usage", path: "/billing", icon: "CreditCard", section: "Workspace", permission: "billing.manage" },
   { label: "Workspace Settings", path: "/settings", icon: "Settings2", section: "Workspace", permission: "workspace.manage" },
