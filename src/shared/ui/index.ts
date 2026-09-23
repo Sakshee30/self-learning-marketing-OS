@@ -4,6 +4,7 @@ export { EvidenceViewer, type EvidenceItem } from "./EvidenceViewer";
 export { ExecutionStatus } from "./ExecutionStatus";
 export { FormField } from "./FormField";
 export { Input } from "./Input";
+export { IntegrationCard, type IntegrationCardProps } from "./IntegrationCard";
 export { MetricCard } from "./MetricCard";
 export { Panel } from "./Panel";
 export { Recommendation } from "./Recommendation";
