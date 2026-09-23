@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { Download, FileCheck2, Search } from "lucide-react";
+import { useAccessScope } from "../../workspace/hooks/useAccessScope";
+import { decisionBelongsToScope, useGovernedExecutionStore } from "../../../compositions/governed-execution/store";
 import {
   Button,
   DecisionReceipt,
@@ -45,6 +47,11 @@ function verificationState(receipt: Receipt): "pending" | "verified" | "failed" 
 }
 
 export default function AuditPage() {
+  const accessScope = useAccessScope();
+  const governedDecision = useGovernedExecutionStore((state) => state.current);
+  const activeDecision =
+    decisionBelongsToScope(governedDecision, accessScope) ? governedDecision : null;
+
   const [query, setQuery] = useState("");
   const [risk, setRisk] = useState("All");
   const [selected, setSelected] = useState<Receipt>(receipts[0]!);
@@ -82,6 +89,33 @@ export default function AuditPage() {
         <MetricCard label="Blocked safely" value="18" detail="No UI bypass state" />
         <MetricCard label="Receipt fields" value="100%" detail="Goal → verification" />
       </section>
+
+      {activeDecision ? (
+        <section className="mb-4">
+          <DecisionReceipt
+            mode="preview"
+            receipt={{
+              receiptId: `PREVIEW-${activeDecision.id.slice(0, 8)}`,
+              goal: activeDecision.goal,
+              actor: activeDecision.approvalIntent ? "Human approval intent" : "AI CMO",
+              evidenceCount: activeDecision.evidenceRefs.length + (activeDecision.simulation ? 1 : 0),
+              forecast: activeDecision.simulation
+                ? `Modeled pipeline ${activeDecision.simulation.modeledPipeline.toLocaleString()}`
+                : activeDecision.forecast,
+              policyVerdict: "approval_required",
+              approvalState:
+                activeDecision.stage === "approval_intent_submitted"
+                  ? `${activeDecision.approvalIntent?.intent ?? "Decision"} intent submitted`
+                  : activeDecision.stage === "approval_required"
+                    ? "Human approval required"
+                    : activeDecision.stage === "simulated"
+                      ? "Simulation complete"
+                      : "Proposal staged",
+              verificationState: "pending"
+            }}
+          />
+        </section>
+      ) : null}
 
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_430px]">
         <Panel className="p-5">
@@ -127,6 +161,7 @@ export default function AuditPage() {
 
         <div className="grid h-fit gap-4">
           <DecisionReceipt
+            mode="preview"
             receipt={{
               receiptId: selected.id,
               goal: selected.goal,
