@@ -29,7 +29,7 @@ export default function AuthPage({ mode = "sign-in" }: { mode?: AuthMode }) {
     defaultValues: { email: "", password: "", remember: true }
   });
   const signUpForm = useZodForm<SignUpInput>(signUpSchema, {
-    defaultValues: { fullName: "", email: "", password: "", acceptTerms: false as true }
+    defaultValues: { fullName: "", email: "", password: "", acceptTerms: false }
   });
   const forgotForm = useZodForm<ForgotPasswordInput>(forgotPasswordSchema, {
     defaultValues: { email: "" }
