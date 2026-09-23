@@ -1,5 +1,5 @@
+import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { useEffect, useState, type ReactNode } from "react";
 import { Shell } from "./components/Shell";
 import CommandCenter from "./pages/CommandCenter";
 import ApprovalsPage from "./pages/ApprovalsPage";
@@ -12,17 +12,21 @@ import AuthPage from "./pages/AuthPage";
 import LaunchpadPage from "./pages/LaunchpadPage";
 import AuditPage from "./pages/AuditPage";
 import { useAuthStore } from "./features/auth/store/authStore";
-import OnboardingPage from "./features/onboarding/OnboardingPage";
 import { hasPermission } from "./rbac";
+import { LoadingState } from "./shared/ui";
 import type { Permission, Role } from "./types";
 
+const OnboardingPage = lazy(() => import("./features/onboarding/OnboardingPage"));
+const WorldModelPage = lazy(() => import("./features/world-model/pages/WorldModelPage"));
+const CampaignsPage = lazy(() => import("./features/campaigns/pages/CampaignsPage"));
+const IntegrationsPage = lazy(() => import("./features/integrations/pages/IntegrationsPage"));
+const DigitalTwinPage = lazy(() => import("./features/digital-twin/pages/DigitalTwinPage"));
+
 const moduleRoutes: Array<{ path: string; permission?: Permission }> = [
-  { path: "/world-model" },
   { path: "/opportunities" },
   { path: "/revenue" },
   { path: "/customers" },
   { path: "/market" },
-  { path: "/campaigns", permission: "campaigns.write" },
   { path: "/creative", permission: "creative.write" },
   { path: "/organic" },
   { path: "/social" },
@@ -31,8 +35,6 @@ const moduleRoutes: Array<{ path: string; permission?: Permission }> = [
   { path: "/experiments" },
   { path: "/agents" },
   { path: "/memory" },
-  { path: "/digital-twin" },
-  { path: "/data", permission: "data.manage" },
   { path: "/governance", permission: "governance.manage" },
   { path: "/billing", permission: "billing.manage" }
 ];
@@ -47,6 +49,10 @@ function PermissionGate({
   children: ReactNode;
 }) {
   return hasPermission(role, permission) ? <>{children}</> : <Navigate to="/command" replace />;
+}
+
+function LazyBoundary({ children }: { children: ReactNode }) {
+  return <Suspense fallback={<LoadingState label="Loading workspace module…" />}>{children}</Suspense>;
 }
 
 function AnonymousRoutes() {
@@ -84,15 +90,67 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/launchpad" replace />} />
         <Route path="/auth/*" element={<Navigate to="/launchpad" replace />} />
-        <Route path="/onboarding" element={<OnboardingPage />} />
-        <Route path="/launchpad" element={<PermissionGate role={role} permission="workspace.manage"><LaunchpadPage /></PermissionGate>} />
+
+        <Route
+          path="/onboarding"
+          element={<LazyBoundary><OnboardingPage /></LazyBoundary>}
+        />
+        <Route
+          path="/launchpad"
+          element={<PermissionGate role={role} permission="workspace.manage"><LaunchpadPage /></PermissionGate>}
+        />
         <Route path="/command" element={<CommandCenter />} />
-        <Route path="/approvals" element={<PermissionGate role={role} permission="approvals.decide"><ApprovalsPage /></PermissionGate>} />
-        <Route path="/automations" element={<PermissionGate role={role} permission="automation.write"><AutomationsPage /></PermissionGate>} />
-        <Route path="/audit" element={<PermissionGate role={role} permission="governance.manage"><AuditPage /></PermissionGate>} />
-        <Route path="/team" element={<PermissionGate role={role} permission="team.manage"><TeamPage /></PermissionGate>} />
-        <Route path="/settings" element={<PermissionGate role={role} permission="workspace.manage"><SettingsPage /></PermissionGate>} />
-        <Route path="/super-admin" element={role === "super_admin" ? <SuperAdminPage /> : <Navigate to="/command" replace />} />
+
+        <Route
+          path="/world-model"
+          element={<LazyBoundary><WorldModelPage /></LazyBoundary>}
+        />
+        <Route
+          path="/campaigns"
+          element={
+            <PermissionGate role={role} permission="campaigns.write">
+              <LazyBoundary><CampaignsPage /></LazyBoundary>
+            </PermissionGate>
+          }
+        />
+        <Route
+          path="/data"
+          element={
+            <PermissionGate role={role} permission="data.manage">
+              <LazyBoundary><IntegrationsPage /></LazyBoundary>
+            </PermissionGate>
+          }
+        />
+        <Route
+          path="/digital-twin"
+          element={<LazyBoundary><DigitalTwinPage /></LazyBoundary>}
+        />
+
+        <Route
+          path="/approvals"
+          element={<PermissionGate role={role} permission="approvals.decide"><ApprovalsPage /></PermissionGate>}
+        />
+        <Route
+          path="/automations"
+          element={<PermissionGate role={role} permission="automation.write"><AutomationsPage /></PermissionGate>}
+        />
+        <Route
+          path="/audit"
+          element={<PermissionGate role={role} permission="governance.manage"><AuditPage /></PermissionGate>}
+        />
+        <Route
+          path="/team"
+          element={<PermissionGate role={role} permission="team.manage"><TeamPage /></PermissionGate>}
+        />
+        <Route
+          path="/settings"
+          element={<PermissionGate role={role} permission="workspace.manage"><SettingsPage /></PermissionGate>}
+        />
+        <Route
+          path="/super-admin"
+          element={role === "super_admin" ? <SuperAdminPage /> : <Navigate to="/command" replace />}
+        />
+
         {moduleRoutes.map(({ path, permission }) => (
           <Route
             key={path}
@@ -104,6 +162,7 @@ export default function App() {
             }
           />
         ))}
+
         <Route path="*" element={<Navigate to="/command" replace />} />
       </Routes>
     </Shell>
