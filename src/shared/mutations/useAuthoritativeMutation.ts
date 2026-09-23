@@ -19,8 +19,8 @@ export function useAuthoritativeMutation<TData, TVariables>({
   scope,
   execute
 }: {
-  mutationKey?: MutationKey;
-  scope?: AccessScope;
+  mutationKey?: MutationKey | undefined;
+  scope?: AccessScope | undefined;
   execute: MutationExecutor<TData, TVariables>;
 }) {
   const [operationState, setOperationState] = useState<OperationState>({
@@ -33,7 +33,7 @@ export function useAuthoritativeMutation<TData, TVariables>({
     unknown,
     { variables: TVariables; operation: OperationIdentity }
   >({
-    mutationKey,
+    ...(mutationKey ? { mutationKey } : {}),
     mutationFn: ({ variables, operation }) => {
       const controller = new AbortController();
       controllerRef.current = controller;
@@ -73,7 +73,7 @@ export function useAuthoritativeMutation<TData, TVariables>({
   });
 
   const submit = useCallback(
-    (variables: TVariables, reuseOperation?: OperationIdentity) => {
+    (variables: TVariables, reuseOperation?: OperationIdentity | undefined) => {
       const operation = reuseOperation ?? createOperationIdentity(scope);
       setOperationState({
         lifecycle: "validating",
