@@ -8,8 +8,10 @@ const LEGACY_PREVIEW_KEY = "growthos-demo-auth";
 type AuthState = {
   status: AuthStatus;
   user: AuthUser | null;
+  onboardingRequired: boolean;
   signInPreview: (input: SignInInput) => void;
   signUpPreview: (input: SignUpInput) => void;
+  completeOnboarding: () => void;
   signOut: () => void;
 };
 
@@ -27,10 +29,12 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       status: legacySignedIn ? "authenticated" : "anonymous",
       user: legacySignedIn ? previewUser : null,
+      onboardingRequired: false,
       signInPreview: (input) => {
         sessionStorage.setItem(LEGACY_PREVIEW_KEY, "true");
         set({
           status: "authenticated",
+          onboardingRequired: false,
           user: {
             id: "preview-user",
             email: input.email,
@@ -42,6 +46,7 @@ export const useAuthStore = create<AuthState>()(
         sessionStorage.setItem(LEGACY_PREVIEW_KEY, "true");
         set({
           status: "authenticated",
+          onboardingRequired: true,
           user: {
             id: "preview-user",
             email: input.email,
@@ -49,15 +54,16 @@ export const useAuthStore = create<AuthState>()(
           }
         });
       },
+      completeOnboarding: () => set({ onboardingRequired: false }),
       signOut: () => {
         sessionStorage.removeItem(LEGACY_PREVIEW_KEY);
-        set({ status: "anonymous", user: null });
+        set({ status: "anonymous", user: null, onboardingRequired: false });
       }
     }),
     {
       name: "growthos-auth-preview",
       storage: createJSONStorage(() => sessionStorage),
-      partialize: ({ status, user }) => ({ status, user })
+      partialize: ({ status, user, onboardingRequired }) => ({ status, user, onboardingRequired })
     }
   )
 );
