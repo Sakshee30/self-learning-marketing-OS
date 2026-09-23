@@ -268,7 +268,7 @@ const moduleTabs: Record<string, string[]> = {
 };
 
 export default function ModulePage({ path }: { path: string }) {
-  const module = modules[path] ?? modules["/opportunities"];
+  const module = modules[path] ?? modules["/opportunities"]!;
 
   return (
     <>
