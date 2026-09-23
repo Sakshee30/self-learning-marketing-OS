@@ -3,6 +3,8 @@
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   --text-overline: 0.6875rem;
   --text-caption: 0.75rem;
+  --text-ui-xs: 0.6875rem;
+  --text-ui-sm: 0.8125rem;
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-md: 0.9375rem;
@@ -150,7 +152,7 @@ textarea:focus-visible,
 
 .nav-item {
   min-height: 40px;
-  font-size: 0.8125rem;
+  font-size: var(--text-ui-sm);
 }
 
 .brand-copy strong {
@@ -165,11 +167,11 @@ textarea:focus-visible,
 
 .workspace-switcher strong,
 .profile-copy strong {
-  font-size: 0.8125rem;
+  font-size: var(--text-ui-sm);
 }
 
 .topbar-center input {
-  font-size: 0.8125rem;
+  font-size: var(--text-ui-sm);
 }
 
 .page-header p {
@@ -180,12 +182,12 @@ textarea:focus-visible,
 .button {
   min-height: 40px;
   padding-inline: 16px;
-  font-size: 0.8125rem;
+  font-size: var(--text-ui-sm);
 }
 
 .badge,
 .risk {
-  font-size: 0.6875rem;
+  font-size: var(--text-ui-xs);
   line-height: 1.2;
 }
 
@@ -242,7 +244,7 @@ textarea:focus-visible,
 .source-row strong,
 .learning-stat span,
 .service-row {
-  font-size: 0.8125rem;
+  font-size: var(--text-ui-sm);
 }
 
 .brief-item p,
@@ -270,7 +272,7 @@ th {
 
 td,
 td strong {
-  font-size: 0.8125rem;
+  font-size: var(--text-ui-sm);
   line-height: 1.45;
 }
 
@@ -278,7 +280,7 @@ td strong {
 .auth-label,
 .auth-options,
 .sso-button {
-  font-size: 0.8125rem;
+  font-size: var(--text-ui-sm);
 }
 
 .auth-label > input,
@@ -333,7 +335,7 @@ td strong {
   th,
   td,
   td strong {
-    font-size: 0.8125rem;
+    font-size: var(--text-ui-sm);
   }
 }
 
