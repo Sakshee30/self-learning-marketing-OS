@@ -2,11 +2,8 @@ import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { Shell } from "./components/Shell";
 import CommandCenter from "./pages/CommandCenter";
-import TeamPage from "./pages/TeamPage";
-import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
 import LaunchpadPage from "./pages/LaunchpadPage";
-import AuditPage from "./pages/AuditPage";
 import { useAuthStore } from "./features/auth/store/authStore";
 import { hasPermission } from "./rbac";
 import { LoadingState } from "./shared/ui";
@@ -33,6 +30,9 @@ const AutomationsPage = lazy(() => import("./features/automations/pages/Automati
 const MemoryPage = lazy(() => import("./features/memory/pages/MemoryPage"));
 const GovernancePage = lazy(() => import("./features/governance/pages/GovernancePage"));
 const BillingPage = lazy(() => import("./features/billing/pages/BillingPage"));
+const TeamPage = lazy(() => import("./features/team/pages/TeamPage"));
+const SettingsPage = lazy(() => import("./features/settings/pages/SettingsPage"));
+const AuditPage = lazy(() => import("./features/audit/pages/AuditPage"));
 
 function PermissionGate({
   role,
@@ -180,15 +180,27 @@ export default function App() {
         />
         <Route
           path="/audit"
-          element={<PermissionGate role={role} permission="governance.manage"><AuditPage /></PermissionGate>}
+          element={
+            <PermissionGate role={role} permission="governance.manage">
+              <LazyBoundary><AuditPage /></LazyBoundary>
+            </PermissionGate>
+          }
         />
         <Route
           path="/team"
-          element={<PermissionGate role={role} permission="team.manage"><TeamPage /></PermissionGate>}
+          element={
+            <PermissionGate role={role} permission="team.manage">
+              <LazyBoundary><TeamPage /></LazyBoundary>
+            </PermissionGate>
+          }
         />
         <Route
           path="/settings"
-          element={<PermissionGate role={role} permission="workspace.manage"><SettingsPage /></PermissionGate>}
+          element={
+            <PermissionGate role={role} permission="workspace.manage">
+              <LazyBoundary><SettingsPage /></LazyBoundary>
+            </PermissionGate>
+          }
         />
         <Route path="*" element={<Navigate to="/command" replace />} />
       </Routes>
