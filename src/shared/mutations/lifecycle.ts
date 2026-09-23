@@ -11,9 +11,9 @@ export type OperationLifecycle =
 
 export type OperationState = {
   lifecycle: OperationLifecycle;
-  operationId?: string;
-  requestId?: string;
-  message?: string;
+  operationId?: string | undefined;
+  requestId?: string | undefined;
+  message?: string | undefined;
 };
 
 export function classifyMutationFailure(error: unknown): OperationLifecycle {
