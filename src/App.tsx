@@ -68,6 +68,7 @@ export default function App() {
   });
   const status = useAuthStore((state) => state.status);
   const user = useAuthStore((state) => state.user);
+  const onboardingRequired = useAuthStore((state) => state.onboardingRequired);
   const signOut = useAuthStore((state) => state.signOut);
 
   useEffect(() => {
@@ -76,6 +77,14 @@ export default function App() {
 
   if (status !== "authenticated") {
     return <AnonymousRoutes />;
+  }
+
+  if (onboardingRequired) {
+    return (
+      <Routes>
+        <Route path="*" element={<Navigate to="/onboarding" replace />} />
+      </Routes>
+    );
   }
 
   return (
