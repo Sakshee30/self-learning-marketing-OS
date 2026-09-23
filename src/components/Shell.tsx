@@ -7,6 +7,7 @@ import {
   BrainCircuit,
   Cable,
   ChartNoAxesCombined,
+  Check,
   ChevronDown,
   Command,
   CreditCard,
@@ -35,6 +36,7 @@ import {
   type LucideIcon
 } from "lucide-react";
 import { navItems } from "../data";
+import { useWorkspaceScope } from "../features/workspace/hooks/useWorkspaceScope";
 import { hasPermission, roleDefinitions, roleLabel } from "../rbac";
 import type { Role } from "../types";
 
@@ -92,7 +94,9 @@ export function Shell({
 }) {
   const [open, setOpen] = useState(false);
   const [roleOpen, setRoleOpen] = useState(false);
+  const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const location = useLocation();
+  const { organization, workspace, workspaces, switching, switchWorkspace } = useWorkspaceScope();
 
   const visibleItems = useMemo(
     () =>
@@ -119,13 +123,13 @@ export function Shell({
           </button>
         </div>
 
-        <button className="ask-ai">
+        <button className="ask-ai" type="button">
           <Command size={17} />
           <span>Ask AI CMO</span>
           <kbd>⌘ K</kbd>
         </button>
 
-        <nav className="nav-scroll">
+        <nav className="nav-scroll" aria-label="Primary workspace navigation">
           {sections.map((section) => (
             <div className="nav-section" key={section}>
               <span className="nav-title">{section}</span>
@@ -168,13 +172,48 @@ export function Shell({
             <button className="icon-button mobile-menu" onClick={() => setOpen(true)} aria-label="Open navigation">
               <Menu size={20} />
             </button>
-            <div className="workspace-switcher">
-              <div className="workspace-logo">N</div>
-              <div>
-                <strong>Northstar Labs</strong>
-                <span>Production workspace</span>
-              </div>
-              <ChevronDown size={15} />
+
+            <div className="relative">
+              <button
+                type="button"
+                className="workspace-switcher rounded-lg px-1 py-1 text-left hover:bg-white"
+                onClick={() => setWorkspaceOpen((value) => !value)}
+                aria-expanded={workspaceOpen}
+                aria-haspopup="menu"
+              >
+                <div className="workspace-logo">{initials(organization?.name ?? "GrowthOS").slice(0, 1)}</div>
+                <div>
+                  <strong>{organization?.name ?? "Workspace"}</strong>
+                  <span>{switching ? "Switching workspace…" : (workspace?.name ?? "Resolving workspace")}</span>
+                </div>
+                <ChevronDown size={15} />
+              </button>
+
+              {workspaceOpen && (
+                <div className="absolute left-0 top-12 z-50 w-72 rounded-xl border border-growth-line bg-white p-2 shadow-xl" role="menu">
+                  <div className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Workspaces
+                  </div>
+                  {workspaces.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      role="menuitem"
+                      className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-slate-50"
+                      onClick={() => {
+                        setWorkspaceOpen(false);
+                        void switchWorkspace(item.id);
+                      }}
+                    >
+                      <div>
+                        <strong className="block text-sm text-growth-ink">{item.name}</strong>
+                        <span className="block text-xs capitalize text-growth-muted">{item.plan} · {item.status.replace("_", " ")}</span>
+                      </div>
+                      {item.id === workspace?.id ? <Check className="text-violet-600" size={17} /> : null}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -190,7 +229,7 @@ export function Shell({
               <span />
             </button>
             <div className="role-menu-wrap">
-              <button className="profile-button" onClick={() => setRoleOpen((value) => !value)}>
+              <button className="profile-button" onClick={() => setRoleOpen((value) => !value)} aria-expanded={roleOpen}>
                 <span className="avatar">{initials(userName)}</span>
                 <span className="profile-copy">
                   <strong>{userName}</strong>
