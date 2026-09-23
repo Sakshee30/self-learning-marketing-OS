@@ -21,18 +21,18 @@ const WorldModelPage = lazy(() => import("./features/world-model/pages/WorldMode
 const CampaignsPage = lazy(() => import("./features/campaigns/pages/CampaignsPage"));
 const IntegrationsPage = lazy(() => import("./features/integrations/pages/IntegrationsPage"));
 const DigitalTwinPage = lazy(() => import("./features/digital-twin/pages/DigitalTwinPage"));
+const CreativeStudioPage = lazy(() => import("./features/creative/pages/CreativeStudioPage"));
+const ExperimentsPage = lazy(() => import("./features/experiments/pages/ExperimentsPage"));
 
 const moduleRoutes: Array<{ path: string; permission?: Permission }> = [
   { path: "/opportunities" },
   { path: "/revenue" },
   { path: "/customers" },
   { path: "/market" },
-  { path: "/creative", permission: "creative.write" },
   { path: "/organic" },
   { path: "/social" },
   { path: "/lifecycle" },
   { path: "/experiences" },
-  { path: "/experiments" },
   { path: "/agents" },
   { path: "/memory" },
   { path: "/governance", permission: "governance.manage" },
@@ -124,6 +124,18 @@ export default function App() {
         <Route
           path="/digital-twin"
           element={<LazyBoundary><DigitalTwinPage /></LazyBoundary>}
+        />
+        <Route
+          path="/creative"
+          element={
+            <PermissionGate role={role} permission="creative.write">
+              <LazyBoundary><CreativeStudioPage /></LazyBoundary>
+            </PermissionGate>
+          }
+        />
+        <Route
+          path="/experiments"
+          element={<LazyBoundary><ExperimentsPage /></LazyBoundary>}
         />
 
         <Route
