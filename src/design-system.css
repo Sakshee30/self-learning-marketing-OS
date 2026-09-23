@@ -1,0 +1,282 @@
+:root {
+  --font-sans: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 0.9375rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.625rem;
+  --text-3xl: clamp(2rem, 3vw, 2.75rem);
+  --leading-tight: 1.2;
+  --leading-body: 1.55;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --focus-ring: 0 0 0 3px rgba(103, 87, 232, .22);
+}
+
+html {
+  font-family: var(--font-sans);
+  font-size: 16px;
+}
+
+body {
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--ink);
+}
+
+h1 {
+  font-size: var(--text-3xl);
+  line-height: 1.08;
+  letter-spacing: -.035em;
+}
+
+h2 {
+  font-size: var(--text-xl);
+  line-height: var(--leading-tight);
+}
+
+h3 {
+  font-size: var(--text-lg);
+  line-height: 1.3;
+}
+
+p {
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a,
+input,
+select,
+textarea,
+[tabindex]:not([tabindex="-1"]) {
+  outline: none;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
+  box-shadow: var(--focus-ring);
+  outline: 2px solid transparent;
+}
+
+.eyebrow,
+.section-kicker,
+.nav-title,
+.role-menu-heading {
+  font-size: 0.6875rem;
+  line-height: 1.25;
+  letter-spacing: .11em;
+}
+
+.nav-item {
+  min-height: 40px;
+  font-size: 0.8125rem;
+}
+
+.brand-copy strong {
+  font-size: 0.9375rem;
+}
+
+.brand-copy span,
+.workspace-switcher span,
+.profile-copy small {
+  font-size: 0.75rem;
+}
+
+.workspace-switcher strong,
+.profile-copy strong {
+  font-size: 0.8125rem;
+}
+
+.topbar-center input {
+  font-size: 0.8125rem;
+}
+
+.page-header p {
+  font-size: 0.875rem;
+  max-width: 760px;
+}
+
+.button {
+  min-height: 40px;
+  padding-inline: 16px;
+  font-size: 0.8125rem;
+}
+
+.badge,
+.risk {
+  font-size: 0.6875rem;
+  line-height: 1.2;
+}
+
+.muted {
+  font-size: 0.75rem;
+}
+
+.kpi-label,
+.metric-card > span,
+.super-kpi > span:not(.metric-icon),
+.approval-summary span,
+.decision-evidence span {
+  font-size: 0.75rem;
+}
+
+.kpi-main strong,
+.metric-card > strong,
+.super-kpi strong,
+.approval-summary strong {
+  font-size: 1.5rem;
+}
+
+.kpi-card .muted,
+.metric-card > small,
+.super-kpi small,
+.approval-summary small {
+  font-size: 0.75rem;
+}
+
+.goal-panel h2,
+.approval-detail-top h2 {
+  font-size: 1.375rem;
+}
+
+.loop-item > span:not(.loop-icon),
+.loop-item small,
+.brief-number,
+.approval-meta,
+.timeline-item small,
+.agent-stats span,
+.agent-stats strong,
+.person-cell small,
+.auth-note {
+  font-size: 0.6875rem;
+}
+
+.loop-item strong,
+.brief-item strong,
+.approval-title-line strong,
+.timeline-item strong,
+.agent-card-top strong,
+.approval-master-line strong,
+.guardrail-row,
+.source-row strong,
+.learning-stat span,
+.service-row {
+  font-size: 0.8125rem;
+}
+
+.brief-item p,
+.approval-row p,
+.timeline-item p,
+.agent-card-top p,
+.approval-master-item p,
+.reasoning-box p,
+.settings-title p,
+.setting-row span:not(.badge):not(.mini-switch),
+.source-row small,
+.security-score p {
+  font-size: 0.75rem;
+}
+
+.lead {
+  font-size: 0.875rem;
+}
+
+th {
+  font-size: 0.6875rem;
+  line-height: 1.3;
+}
+
+td,
+td strong {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.auth-form-card > p,
+.auth-label,
+.auth-options,
+.sso-button {
+  font-size: 0.8125rem;
+}
+
+.auth-label > input,
+.password-wrap,
+.settings-card input,
+.settings-card select {
+  min-height: 42px;
+  font-size: 0.875rem;
+}
+
+.module-tabs button {
+  min-height: 36px;
+  font-size: 0.75rem;
+}
+
+.panel,
+.kpi-card,
+.agent-card,
+.metric-card,
+.approval-summary > div {
+  border-radius: var(--radius-md);
+}
+
+.text-link {
+  min-height: 32px;
+  font-size: 0.75rem;
+}
+
+.circle-next,
+.icon-button {
+  min-width: 40px;
+  min-height: 40px;
+}
+
+@media (max-width: 760px) {
+  .page-wrap {
+    padding: 24px 18px 40px;
+  }
+
+  .page-header {
+    gap: 16px;
+  }
+
+  .page-header p {
+    font-size: 0.875rem;
+  }
+
+  .button {
+    min-height: 42px;
+  }
+
+  th,
+  td,
+  td strong {
+    font-size: 0.8125rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
