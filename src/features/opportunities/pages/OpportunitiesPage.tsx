@@ -31,6 +31,7 @@ export default function OpportunitiesPage() {
   const [riskFilter, setRiskFilter] = useState("All");
   const [selected, setSelected] = useState<Opportunity>(seed[0]!);
   const [simulationNotice, setSimulationNotice] = useState<string | null>(null);
+  const [researching, setResearching] = useState(false);
 
   const ranked = useMemo(
     () => seed
@@ -50,7 +51,16 @@ export default function OpportunitiesPage() {
             The system recommends what to investigate next without confusing a forecast with confirmed revenue.
           </p>
         </div>
-        <Button><Sparkles size={16} /> Find new opportunities</Button>
+        <Button
+          disabled={researching}
+          onClick={() => {
+            setResearching(true);
+            setSimulationNotice("Opportunity research started in frontend preview. Existing ranked evidence remains visible; no new opportunity is claimed until the backend research run returns authoritative results.");
+            window.setTimeout(() => setResearching(false), 1200);
+          }}
+        >
+          <Sparkles size={16} /> {researching ? "Researching…" : "Find new opportunities"}
+        </Button>
       </header>
 
       {simulationNotice && (
