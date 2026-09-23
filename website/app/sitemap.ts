@@ -2,6 +2,8 @@ import type { MetadataRoute } from "next";
 import { getSiteOrigin } from "@/src/config/site-origin";
 import { publicRoutes } from "@/src/content/routes";
 
+export const dynamic = "force-static";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const siteOrigin = getSiteOrigin();
 
