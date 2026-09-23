@@ -246,6 +246,27 @@ const modules: Record<string, ModuleConfig> = {
   }
 };
 
+const moduleTabs: Record<string, string[]> = {
+  "/world-model": ["Overview", "Business model", "Assumptions", "Constraints", "Scenarios"],
+  "/opportunities": ["Ranked opportunities", "Impact", "Confidence", "Effort", "Execution"],
+  "/revenue": ["Overview", "Full funnel", "Klarity attribution", "Incrementality", "CAC & LTV", "Profit"],
+  "/customers": ["Profiles", "Audiences", "Enrich", "Lead quality", "Identity", "Activation"],
+  "/market": ["Category", "Competitors", "Pricing", "Offers", "Messaging", "Trends"],
+  "/campaigns": ["Overview", "Paid media", "AdSync", "Budgets", "UTM", "Conversion activation"],
+  "/creative": ["Library", "Concepts", "Variants", "Brand rules", "Fatigue", "Performance"],
+  "/organic": ["SEO", "GEO", "Technical", "Content", "Entities", "Internal links"],
+  "/social": ["Planner", "Publishing", "Creators", "Listening", "Performance"],
+  "/lifecycle": ["Journeys", "CRM", "Email", "Lead scoring", "Reactivation", "Retention"],
+  "/experiences": ["Website", "CRO", "Personalization", "Forms", "Lead capture"],
+  "/experiments": ["Running", "Backlog", "Results", "Causal lift", "Learnings"],
+  "/agents": ["Roster", "Capabilities", "Tools", "Permissions", "Runs", "Health"],
+  "/memory": ["Decisions", "Learnings", "Assumptions", "Policies", "Evidence"],
+  "/digital-twin": ["Scenarios", "Forecasts", "Budget simulator", "Capacity", "Risk"],
+  "/data": ["Sources", "Tracking setup", "Event manager", "Data quality", "Identity", "Destinations"],
+  "/governance": ["Autonomy policy", "Approvals", "Audit", "Consent", "Retention", "Kill switches"],
+  "/billing": ["Plan", "Usage", "Budgets", "Seats", "Invoices"]
+};
+
 export default function ModulePage({ path }: { path: string }) {
   const module = modules[path] ?? modules["/opportunities"];
 
@@ -257,6 +278,12 @@ export default function ModulePage({ path }: { path: string }) {
         description={module.description}
         actions={<><Button variant="secondary">View history</Button><Button><Plus size={16} /> {module.primary}</Button></>}
       />
+
+      <div className="module-tabs" role="tablist" aria-label={module.title + " sections"}>
+        {(moduleTabs[path] ?? ["Overview"]).map((tab, index) => (
+          <button key={tab} className={index === 0 ? "active" : ""} type="button">{tab}</button>
+        ))}
+      </div>
 
       <section className="module-metrics">
         {[module.metricA, module.metricB, module.metricC].map(([label, value, meta]) => (
