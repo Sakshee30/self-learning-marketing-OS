@@ -8,7 +8,7 @@ const members = [
   ["Maya Singh", "maya@northstarlabs.demo", "Marketing Manager", "Active"],
   ["Kabir Roy", "kabir@northstarlabs.demo", "Analyst", "Active"],
   ["Nisha Rao", "nisha@northstarlabs.demo", "Approver", "Invited"]
-];
+] as const;
 
 export default function TeamPage() {
   return (
