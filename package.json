@@ -1,14 +1,18 @@
 {
   "name": "self-learning-marketing-os",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev:control": "vite --config frontend/platform-admin/vite.config.ts",
+    "build:customer": "tsc -b && vite build",
+    "build:control": "tsc -p frontend/platform-admin/tsconfig.json --noEmit && vite build --config frontend/platform-admin/vite.config.ts",
+    "build": "npm run build:customer && npm run build:control",
     "preview": "vite preview",
-    "typecheck": "tsc -b --pretty false",
-    "check": "npm run typecheck && vite build"
+    "preview:control": "vite preview --config frontend/platform-admin/vite.config.ts",
+    "typecheck": "tsc -b --pretty false && tsc -p frontend/platform-admin/tsconfig.json --noEmit --pretty false",
+    "check": "npm run typecheck && vite build && vite build --config frontend/platform-admin/vite.config.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

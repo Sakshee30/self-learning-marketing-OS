@@ -25,8 +25,7 @@ export const navItems: NavItem[] = [
   { label: "Audit & Receipts", path: "/audit", icon: "ShieldCheck", section: "Platform", permission: "governance.manage" },
   { label: "Team & Roles", path: "/team", icon: "UserRoundCog", section: "Workspace", permission: "team.manage" },
   { label: "Billing & Usage", path: "/billing", icon: "CreditCard", section: "Workspace", permission: "billing.manage" },
-  { label: "Workspace Settings", path: "/settings", icon: "Settings2", section: "Workspace", permission: "workspace.manage" },
-  { label: "Super Admin", path: "/super-admin", icon: "Shield", section: "Platform", roles: ["super_admin"] }
+  { label: "Workspace Settings", path: "/settings", icon: "Settings2", section: "Workspace", permission: "workspace.manage" }
 ];
 
 export const kpis: Kpi[] = [

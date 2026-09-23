@@ -3,8 +3,6 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { Shell } from "./components/Shell";
 import CommandCenter from "./pages/CommandCenter";
 import TeamPage from "./pages/TeamPage";
-import SuperAdminPage from "./pages/SuperAdminPage";
-import ModulePage from "./pages/ModulePage";
 import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
 import LaunchpadPage from "./pages/LaunchpadPage";
@@ -36,9 +34,6 @@ const MemoryPage = lazy(() => import("./features/memory/pages/MemoryPage"));
 const GovernancePage = lazy(() => import("./features/governance/pages/GovernancePage"));
 const BillingPage = lazy(() => import("./features/billing/pages/BillingPage"));
 
-const moduleRoutes: Array<{ path: string; permission?: Permission }> = [
-];
-
 function PermissionGate({
   role,
   permission,
@@ -67,7 +62,10 @@ function AnonymousRoutes() {
 }
 
 export default function App() {
-  const [role, setRole] = useState<Role>(() => (localStorage.getItem("growthos-role") as Role) || "owner");
+  const [role, setRole] = useState<Role>(() => {
+    const stored = localStorage.getItem("growthos-role") as Role | null;
+    return !stored || stored === "super_admin" ? "owner" : stored;
+  });
   const status = useAuthStore((state) => state.status);
   const user = useAuthStore((state) => state.user);
   const signOut = useAuthStore((state) => state.signOut);
@@ -192,23 +190,6 @@ export default function App() {
           path="/settings"
           element={<PermissionGate role={role} permission="workspace.manage"><SettingsPage /></PermissionGate>}
         />
-        <Route
-          path="/super-admin"
-          element={role === "super_admin" ? <SuperAdminPage /> : <Navigate to="/command" replace />}
-        />
-
-        {moduleRoutes.map(({ path, permission }) => (
-          <Route
-            key={path}
-            path={path}
-            element={
-              permission
-                ? <PermissionGate role={role} permission={permission}><ModulePage path={path} /></PermissionGate>
-                : <ModulePage path={path} />
-            }
-          />
-        ))}
-
         <Route path="*" element={<Navigate to="/command" replace />} />
       </Routes>
     </Shell>

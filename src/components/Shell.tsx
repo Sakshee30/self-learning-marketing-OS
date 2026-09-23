@@ -240,7 +240,7 @@ export function Shell({
               {roleOpen && (
                 <div className="role-menu">
                   <div className="role-menu-heading">Preview permissions as</div>
-                  {roleDefinitions.map((item) => (
+                  {roleDefinitions.filter((item) => item.role !== "super_admin").map((item) => (
                     <button
                       key={item.role}
                       className={role === item.role ? "selected" : ""}
