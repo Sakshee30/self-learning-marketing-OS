@@ -1,4 +1,4 @@
-import { ContactForm } from "@/src/components/ContactForm";
+import { ContactForm } from "@/src/features/contact/ContactForm";
 import { metadataFor } from "@/src/seo/metadata";
 
 export const metadata = metadataFor("contact");
@@ -34,7 +34,8 @@ export default function ContactPage() {
         <div className="contact-card">
           <h2>Tell us what you are trying to improve.</h2>
           <p>
-            The form only reports success after the configured Website API confirms acceptance.
+            The form reports success only after the configured Website API confirms acceptance.
+            Downstream CRM, email, and follow-up delivery remain separate asynchronous operations.
           </p>
           <ContactForm />
         </div>
