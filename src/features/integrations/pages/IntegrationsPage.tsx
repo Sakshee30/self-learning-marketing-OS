@@ -3,13 +3,12 @@ import {
   Cable,
   CheckCircle2,
   CircleAlert,
-  Database,
   PlugZap,
   RefreshCw,
   Search,
   ShieldCheck
 } from "lucide-react";
-import { Button, Input, MetricCard, Panel, StatusBadge } from "../../../shared/ui";
+import { Button, Input, IntegrationCard, MetricCard, Panel, StatusBadge } from "../../../shared/ui";
 
 type ConnectionStatus = "connected" | "attention" | "available" | "setup_required";
 
@@ -147,6 +146,12 @@ export default function IntegrationsPage() {
     );
   }
 
+  function refreshMetadata(item: Integration) {
+    setNotice(
+      item.name + " metadata refresh was requested in the frontend preview. Freshness and provider health remain unchanged until the backend returns authoritative sync state."
+    );
+  }
+
   return (
     <>
       <header className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -158,7 +163,7 @@ export default function IntegrationsPage() {
             Every source exposes freshness, scopes, quality and activation authority separately.
           </p>
         </div>
-        <Button><PlugZap size={16} /> Add integration</Button>
+        <Button onClick={() => { setQuery(""); setNotice("Select an available provider below to begin its governed connection flow."); }}><PlugZap size={16} /> Add integration</Button>
       </header>
 
       {notice && (
@@ -192,47 +197,28 @@ export default function IntegrationsPage() {
 
         <div className="mt-5 grid gap-3 lg:grid-cols-2">
           {filtered.map((item) => (
-            <article key={item.id} className="rounded-xl border border-growth-line p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="flex gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-violet-700">
-                    <Database size={19} />
-                  </span>
-                  <div>
-                    <strong className="block text-sm text-growth-ink">{item.name}</strong>
-                    <span className="mt-0.5 block text-xs text-growth-muted">{item.category}</span>
-                  </div>
-                </div>
-                <StatusBadge tone={statusTone(item.status)}>{statusLabel(item.status)}</StatusBadge>
-              </div>
-
-              <p className="mb-0 mt-3 text-xs leading-5 text-growth-muted">{item.purpose}</p>
-
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <div className="rounded-lg bg-slate-50 p-3">
-                  <span className="text-xs text-growth-muted">Freshness</span>
-                  <strong className="mt-1 block text-xs text-growth-ink">{item.freshness}</strong>
-                </div>
-                <div className="rounded-lg bg-slate-50 p-3">
-                  <span className="text-xs text-growth-muted">Confidence</span>
-                  <strong className="mt-1 block text-xs text-growth-ink">{item.confidence}</strong>
-                </div>
-              </div>
-
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {item.scopes.map((scope) => (
-                  <span key={scope} className="rounded-md bg-slate-100 px-2 py-1 text-[11px] text-slate-600">{scope}</span>
-                ))}
-              </div>
-
-              <div className="mt-4 flex justify-end">
-                {item.status === "connected" ? (
-                  <Button variant="secondary"><RefreshCw size={15} /> Refresh metadata</Button>
+            <IntegrationCard
+              key={item.id}
+              name={item.name}
+              category={item.category}
+              description={item.purpose}
+              status={statusLabel(item.status)}
+              statusTone={statusTone(item.status)}
+              freshness={item.freshness}
+              confidence={item.confidence}
+              scopes={item.scopes}
+              action={
+                item.status === "connected" ? (
+                  <Button variant="secondary" onClick={() => refreshMetadata(item)}>
+                    <RefreshCw size={15} /> Refresh metadata
+                  </Button>
                 ) : (
-                  <Button variant="secondary" onClick={() => beginConnection(item)}>Configure connection</Button>
-                )}
-              </div>
-            </article>
+                  <Button variant="secondary" onClick={() => beginConnection(item)}>
+                    Configure connection
+                  </Button>
+                )
+              }
+            />
           ))}
         </div>
       </Panel>
