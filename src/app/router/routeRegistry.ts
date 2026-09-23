@@ -7,6 +7,10 @@ export type CustomerRouteMeta = {
   path: string;
   title: string;
   breadcrumb: string;
+  parameterSchema: "none" | "validated";
+  searchSchema: "none" | "validated";
+  implementation: "eager" | "lazy";
+  errorBoundary: "app" | "route";
   section?: string;
   icon?: string;
   permission?: Permission;
@@ -15,10 +19,37 @@ export type CustomerRouteMeta = {
   workspaceRequired: boolean;
   unsavedWorkPolicy: UnsavedWorkPolicy;
   navigation?: boolean;
-  badge?: string;
+  badge?: string | undefined;
 };
 
-export const customerRouteRegistry: CustomerRouteMeta[] = [
+type CustomerRouteInput = Omit<
+  CustomerRouteMeta,
+  "parameterSchema" | "searchSchema" | "implementation" | "errorBoundary"
+> & Partial<
+  Pick<CustomerRouteMeta, "parameterSchema" | "searchSchema" | "implementation" | "errorBoundary">
+>;
+
+const eagerRouteIds = new Set([
+  "auth.sign-in",
+  "auth.sign-up",
+  "auth.forgot-password",
+  "launchpad",
+  "command-center"
+]);
+
+function defineRoute(route: CustomerRouteInput): CustomerRouteMeta {
+  const implementation = route.implementation ?? (eagerRouteIds.has(route.id) ? "eager" : "lazy");
+
+  return {
+    parameterSchema: "none",
+    searchSchema: "none",
+    errorBoundary: implementation === "lazy" ? "route" : "app",
+    ...route,
+    implementation
+  };
+}
+
+const customerRouteInputs: CustomerRouteInput[] = [
   {
     id: "auth.sign-in",
     path: "/auth/sign-in",
@@ -406,6 +437,8 @@ export const customerRouteRegistry: CustomerRouteMeta[] = [
     navigation: true
   }
 ];
+
+export const customerRouteRegistry: CustomerRouteMeta[] = customerRouteInputs.map(defineRoute);
 
 export function routeMetaFor(pathname: string) {
   return customerRouteRegistry.find((route) => route.path === pathname);
