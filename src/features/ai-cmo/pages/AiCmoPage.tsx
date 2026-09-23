@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { GoalBuilder } from "../components/GoalBuilder";
 import type { CmoGoalInput } from "../schemas/goal.schema";
-import { Button, MetricCard, Panel, StatusBadge } from "../../../shared/ui";
+import { Button, EvidenceViewer, MetricCard, Panel, Recommendation, StatusBadge } from "../../../shared/ui";
 
 const initialGoal: CmoGoalInput = {
   objective: "Grow qualified pipeline without increasing blended CAC",
@@ -274,18 +274,51 @@ export default function AiCmoPage() {
             and, where required, placed into the Human Approval Center.
           </p>
 
-          <div className="mt-4 grid gap-3">
-            {[
-              ["Evidence", "CRM opportunity quality, paid-search economics, lifecycle engagement and World Model assumptions."],
-              ["Forecast", strategies[selectedStrategy].forecast + " modeled impact with " + strategies[selectedStrategy].confidence + " confidence."],
-              ["Policy", strategies[selectedStrategy].approval + " requires authoritative human approval before external execution."],
-              ["Receipt", "A decision receipt will bind evidence, forecast, policy verdict, actor, approval and verified outcome."]
-            ].map(([label, detail]) => (
-              <div key={label} className="rounded-xl border border-growth-line bg-slate-50/70 p-3">
-                <span className="type-overline text-slate-400">{label}</span>
-                <p className="mb-0 mt-1 text-xs leading-5 text-growth-ink">{detail}</p>
-              </div>
-            ))}
+          <div className="mt-4 grid gap-4">
+            <Recommendation
+              title={strategies[selectedStrategy].name}
+              rationale={strategies[selectedStrategy].reason}
+              confidence={Number(strategies[selectedStrategy].confidence.replace("%", ""))}
+              impact={strategies[selectedStrategy].forecast}
+            >
+              <StatusBadge tone="warning">
+                Approval: {strategies[selectedStrategy].approval}
+              </StatusBadge>
+            </Recommendation>
+
+            <EvidenceViewer
+              title="Evidence used for this recommendation"
+              items={[
+                {
+                  id: "crm-quality",
+                  label: "Opportunity quality",
+                  source: "CRM + Revenue Intelligence",
+                  detail: "Pipeline quality, close rates and realized revenue are reconciled before strategy ranking.",
+                  confidence: 94
+                },
+                {
+                  id: "channel-economics",
+                  label: "Channel economics",
+                  source: "Campaigns + Attribution",
+                  detail: "Paid-search efficiency and saturation signals are compared against the active CAC boundary.",
+                  confidence: 91
+                },
+                {
+                  id: "world-model",
+                  label: "Business constraints",
+                  source: "Business World Model",
+                  detail: "Margin, positioning, sales-cycle and activation assumptions constrain the proposed action."
+                }
+              ]}
+            />
+
+            <div className="rounded-xl border border-growth-line bg-slate-50/70 p-3">
+              <span className="type-overline text-slate-400">RECEIPT CONTRACT</span>
+              <p className="mb-0 mt-1 text-xs leading-5 text-growth-ink">
+                A future decision receipt binds evidence, forecast, policy verdict, actor identity,
+                approval state, execution confirmation, verified outcome and the learning written back to memory.
+              </p>
+            </div>
           </div>
 
           <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
