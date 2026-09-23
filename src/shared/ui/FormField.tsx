@@ -1,5 +1,11 @@
 import { useId, type ReactNode } from "react";
 
+type FieldIds = {
+  inputId: string;
+  descriptionId?: string | undefined;
+  errorId?: string | undefined;
+};
+
 export function FormField({
   label,
   description,
@@ -8,10 +14,10 @@ export function FormField({
   children
 }: {
   label: string;
-  description?: string;
-  error?: string;
-  required?: boolean;
-  children: (ids: { inputId: string; descriptionId?: string; errorId?: string }) => ReactNode;
+  description?: string | undefined;
+  error?: string | undefined;
+  required?: boolean | undefined;
+  children: (ids: FieldIds) => ReactNode;
 }) {
   const inputId = useId();
   const descriptionId = description ? `${inputId}-description` : undefined;
