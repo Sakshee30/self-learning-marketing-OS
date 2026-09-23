@@ -15,7 +15,7 @@ import { useAuthStore } from "../features/auth/store/authStore";
 
 type AuthMode = "sign-in" | "sign-up" | "forgot-password";
 
-function FieldError({ message }: { message?: string }) {
+function FieldError({ message }: { message?: string | undefined }) {
   return message ? <span className="mt-1 block text-xs font-semibold text-red-600">{message}</span> : null;
 }
 
