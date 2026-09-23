@@ -18,10 +18,12 @@ export function useAuthoritativeMutation<TData, TVariables>({
   mutationKey,
   scope,
   execute
+  onConfirmed
 }: {
   mutationKey?: MutationKey | undefined;
   scope?: AccessScope | undefined;
   execute: MutationExecutor<TData, TVariables>;
+  onConfirmed?: ((data: TData, variables: TVariables, operation: OperationIdentity) => void) | undefined;
 }) {
   const [operationState, setOperationState] = useState<OperationState>({
     lifecycle: "idle"
@@ -45,12 +47,13 @@ export function useAuthoritativeMutation<TData, TVariables>({
         operationId: operation.operationId
       });
     },
-    onSuccess: (_, { operation }) => {
+    onSuccess: (data, { variables, operation }) => {
       setOperationState({
         lifecycle: "confirmed_success",
         operationId: operation.operationId
       });
       controllerRef.current = null;
+      onConfirmed?.(data, variables, operation);
     },
     onError: (error, { operation }) => {
       const lifecycle = classifyMutationFailure(error);
