@@ -1,15 +1,24 @@
-import { apiRequest } from "../../../shared/api/client";
-import type { ApiEnvelope, RequestContext } from "../../../shared/api/contracts";
-import type { Campaign, CreateCampaignInput } from "../schemas/campaign.schema";
+import { z } from "zod";
+import { apiRequestValidated } from "../../../shared/api/client";
+import type { RequestContext } from "../../../shared/api/contracts";
+import { apiEnvelopeSchema } from "../../../shared/api/schemas";
+import { campaignSchema, type CreateCampaignInput } from "../schemas/campaign.schema";
+
+const campaignsEnvelopeSchema = apiEnvelopeSchema(z.array(campaignSchema));
+const campaignEnvelopeSchema = apiEnvelopeSchema(campaignSchema);
 
 export function listCampaigns(context: RequestContext, signal?: AbortSignal | undefined) {
-  return apiRequest<ApiEnvelope<Campaign[]>>(
+  return apiRequestValidated(
     "/campaigns",
+    campaignsEnvelopeSchema,
     {
       method: "GET",
       ...(signal ? { signal } : {})
     },
-    context
+    {
+      ...context,
+      deadlineMs: context.deadlineMs ?? 10_000
+    }
   );
 }
 
@@ -18,13 +27,17 @@ export function createCampaign(
   context: RequestContext,
   signal?: AbortSignal | undefined
 ) {
-  return apiRequest<ApiEnvelope<Campaign>>(
+  return apiRequestValidated(
     "/campaigns",
+    campaignEnvelopeSchema,
     {
       method: "POST",
       body: JSON.stringify(input),
       ...(signal ? { signal } : {})
     },
-    context
+    {
+      ...context,
+      deadlineMs: context.deadlineMs ?? 15_000
+    }
   );
 }
