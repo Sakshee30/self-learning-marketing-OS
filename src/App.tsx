@@ -10,6 +10,7 @@ import { LoadingState } from "./shared/ui";
 import type { Permission, Role } from "./types";
 
 const OnboardingPage = lazy(() => import("./features/onboarding/OnboardingPage"));
+const AiCmoPage = lazy(() => import("./features/ai-cmo/pages/AiCmoPage"));
 const WorldModelPage = lazy(() => import("./features/world-model/pages/WorldModelPage"));
 const CampaignsPage = lazy(() => import("./features/campaigns/pages/CampaignsPage"));
 const IntegrationsPage = lazy(() => import("./features/integrations/pages/IntegrationsPage"));
@@ -107,6 +108,7 @@ export default function App() {
           element={<PermissionGate role={role} permission="workspace.manage"><LaunchpadPage /></PermissionGate>}
         />
         <Route path="/command" element={<CommandCenter />} />
+        <Route path="/ai-cmo" element={<LazyBoundary><AiCmoPage /></LazyBoundary>} />
 
         <Route
           path="/world-model"
