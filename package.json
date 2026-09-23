@@ -1,7 +1,7 @@
 {
   "name": "self-learning-marketing-os",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,7 +12,10 @@
     "preview": "vite preview",
     "preview:control": "vite preview --config frontend/platform-admin/vite.config.ts",
     "typecheck": "tsc -b --pretty false && tsc -p frontend/platform-admin/tsconfig.json --noEmit --pretty false",
-    "check": "npm run typecheck && vite build && vite build --config frontend/platform-admin/vite.config.ts"
+    "architecture:check": "node scripts/check-route-registry.mjs",
+    "budget:check": "node scripts/check-frontend-budgets.mjs",
+    "check": "npm run architecture:check && npm run typecheck",
+    "verify": "npm run architecture:check && npm run build && npm run budget:check"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
