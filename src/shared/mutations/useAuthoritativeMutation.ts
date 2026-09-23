@@ -17,7 +17,7 @@ type MutationExecutor<TData, TVariables> = (args: {
 export function useAuthoritativeMutation<TData, TVariables>({
   mutationKey,
   scope,
-  execute
+  execute,
   onConfirmed
 }: {
   mutationKey?: MutationKey | undefined;
