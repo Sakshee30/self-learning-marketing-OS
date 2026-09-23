@@ -287,11 +287,11 @@ export default function CampaignsPage() {
           </p>
 
           <div className="mt-4 grid gap-3">
-            {[
+            {([
               ["Search high-intent", "+18% budget", "+$62K forecast", "High confidence"],
               ["Meta prospecting", "-12% budget", "$18K waste avoided", "Medium confidence"],
               ["Lifecycle expansion", "+8% budget", "+$39K expansion", "High confidence"]
-            ].map(([channel, change, impact, confidence]) => (
+            ] as const).map(([channel, change, impact, confidence]) => (
               <div key={channel} className="rounded-lg border border-growth-line p-3">
                 <div className="flex items-center justify-between gap-2">
                   <strong className="text-sm">{channel}</strong>
