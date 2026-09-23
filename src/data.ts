@@ -22,7 +22,7 @@ export const navItems: NavItem[] = [
   { label: "Data & Integrations", path: "/data", icon: "Cable", section: "Platform", permission: "data.manage" },
   { label: "Governance", path: "/governance", icon: "ShieldCheck", section: "Platform", permission: "governance.manage" },
   { label: "Team & Roles", path: "/team", icon: "UserRoundCog", section: "Workspace", permission: "team.manage" },
-  { label: "Billing & Usage", path: "/billing", icon: "CreditCard", section: "Workspace", permission: "billing.manage" },
+  { label: "Billing & Usage", path: "/billing", icon: "CreditCard", section: "Workspace", permission: "billing.manage" },\n  { label: "Workspace Settings", path: "/settings", icon: "Settings2", section: "Workspace", permission: "workspace.manage" },
   { label: "Super Admin", path: "/super-admin", icon: "Shield", section: "Platform", roles: ["super_admin"] }
 ];
 
