@@ -18,6 +18,9 @@ The current pass inspected and changed:
 - `website/scripts/check-site.mjs` release-structure validation.
 - `website/package.json`, `website/next.config.ts`, and `website/tsconfig.json`.
 - Frontend CI configuration that verifies the website as an independent build.
+- `website-api/src/forms/`, migrations, submission runtime validation, and authenticated CMS synchronization boundary.
+- `website-api/src/delivery/` retryable delivery worker and delivery-attempt persistence.
+- `cms-studio/src/publishing/`, `src/jobs/`, and Website API publication adapter used by durable Payload jobs.
 
 The customer workspace under `src/` and platform control under `frontend/platform-admin/` were inspected only enough to preserve their deployment boundaries; they were not refactored as part of this website pass.
 
@@ -63,9 +66,9 @@ The browser does not claim CRM delivery, email delivery, qualification, opportun
 
 The architecture specification requires these to remain separate deployment/ownership boundaries instead of being hidden inside the public website:
 
-- CMS and Marketing Studio: foundation exists in `cms-studio/`; broader editorial/publishing workflow remains incomplete.
+- CMS and Marketing Studio: controlled content/form foundation exists in `cms-studio/`; published form changes now enqueue durable Payload jobs for Website API synchronization, while coordinated release manifests remain incomplete.
 - Preview service: not yet implemented.
-- Website API: foundation exists in `website-api/` with durable submissions, consent records, attribution contracts, and transactional outbox.
+- Website API: foundation exists in `website-api/` with authenticated form-version publication, runtime form-rule validation, durable submissions, consent records, attribution contracts, and transactional outbox.
 - Delivery processing: retryable webhook worker foundation exists; provider-specific CRM/email adapters and operator tooling remain incomplete.
 - CRM/email/webhook adapters: generic webhook delivery exists; named provider adapters remain future work.
 - Media quarantine and derivative processing.
@@ -78,10 +81,10 @@ Those systems are not represented by browser mocks or fake success handlers in t
 
 The following remain incomplete or unverified for the public website:
 
-- Complete Payload CMS content model beyond the current controlled foundation.
-- Complete draft/review/approval/scheduling/release/rollback publishing workflow.
+- Complete Payload CMS content model beyond the current controlled page/form/media foundation.
+- Coordinated release manifests, static release build/promotion, rollback, and emergency takedown beyond current document-level draft/review/approval/scheduling.
 - Blog, resources, authors, categories, tags and editorial refresh workflows.
-- Marketing Studio page builder and approved block schemas.
+- Complete Marketing Studio block library and editor tooling beyond the current controlled Hero/Feature Grid/Rich Text/CTA/Form foundation.
 - Media quarantine, malware scanning, rights tracking and derivative generation.
 - Provider-specific CRM/email delivery adapters and operator-visible retry/history UI.
 - Runtime consent-policy evaluation and destination-specific enforcement beyond stored consent history.
@@ -98,6 +101,10 @@ The following remain incomplete or unverified for the public website:
 - Backup/restore and release rollback/takedown exercises.
 - Dependency lockfile for the standalone website.
 
+## Verification snapshot
+
+Platform CI run `35992627950` for commit `8d2c2f53d686274fd4fbee3ea60b70c5459f2b8f` completed successfully on 24 September 2026. The customer/control, public website, Website API, and CMS Studio jobs all passed their configured checks. This verifies the repository's current automated gates; it does not substitute for browser accessibility, penetration, load, recovery, or production-environment qualification.
+
 ## Quality assessment
 
 A reliable aggregate quality score is intentionally withheld at this stage.
@@ -106,9 +113,9 @@ The structure, route ownership, contact failure semantics and build boundaries c
 
 ## Next implementation order
 
-1. Obtain a green public-website CI build with recorded evidence.
-2. Add approved legal/privacy content before publishing consent-dependent tracking.
-3. Connect CMS publishing to Website API form-version synchronization and release manifests.
+1. Implement coordinated release manifests that pin approved page, form, media and configuration revisions before promotion.
+2. Add the release build/promotion/verification path with rollback and emergency takedown semantics.
+3. Add approved legal/privacy content before publishing consent-dependent tracking.
 4. Add provider-specific CRM/email adapters plus authorized delivery-operations tooling.
 5. Add runtime consent-policy enforcement for optional destinations.
 6. Add browser E2E/accessibility checks and representative performance budgets.
