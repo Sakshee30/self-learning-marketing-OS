@@ -3,11 +3,13 @@ import { Injectable } from "@nestjs/common";
 import type { PoolClient } from "pg";
 import { normalizeAttribution } from "../attribution/attribution.contract";
 import { DatabasePoolService } from "../database/database-pool.service";
+import { validateSubmissionFields } from "../forms/form-schema";
 import type { SubmissionBody, SubmissionReceipt } from "./submission.contract";
 import {
   ConsentRecordNotFoundError,
   IdempotencyConflictError,
   PublishedFormNotFoundError,
+  SubmissionFormValidationError,
   SubmissionPersistenceError,
 } from "./submission.errors";
 
@@ -27,6 +29,7 @@ interface ExistingSubmissionRow {
 
 interface PublishedFormRow {
   id: string;
+  schema: unknown;
 }
 
 @Injectable()
@@ -40,7 +43,8 @@ export class SubmissionRepository {
       if (
         error instanceof PublishedFormNotFoundError ||
         error instanceof IdempotencyConflictError ||
-        error instanceof ConsentRecordNotFoundError
+        error instanceof ConsentRecordNotFoundError ||
+        error instanceof SubmissionFormValidationError
       ) {
         throw error;
       }
@@ -66,7 +70,7 @@ export class SubmissionRepository {
     }
 
     const publishedForm = await client.query<PublishedFormRow>(
-      `SELECT id
+      `SELECT id, schema
          FROM website_form_versions
         WHERE form_id = $1 AND status = 'published'
         ORDER BY version DESC
@@ -77,6 +81,11 @@ export class SubmissionRepository {
 
     const formVersion = publishedForm.rows[0];
     if (!formVersion) throw new PublishedFormNotFoundError(input.formId);
+
+    const formIssues = validateSubmissionFields(formVersion.schema, input.body.fields);
+    if (formIssues.length > 0) {
+      throw new SubmissionFormValidationError(formIssues);
+    }
 
     const submissionId = randomUUID();
     const receivedAt = new Date();

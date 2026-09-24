@@ -20,6 +20,7 @@ import {
   ConsentRecordNotFoundError,
   IdempotencyConflictError,
   PublishedFormNotFoundError,
+  SubmissionFormValidationError,
   SubmissionPersistenceError,
 } from "./submission.errors";
 import { SubmissionService } from "./submission.service";
@@ -70,6 +71,13 @@ export class SubmissionController {
       }
       if (error instanceof ConsentRecordNotFoundError) {
         throw new BadRequestException({ code: "invalid_consent_reference", message: error.message });
+      }
+      if (error instanceof SubmissionFormValidationError) {
+        throw new BadRequestException({
+          code: "published_form_validation_failed",
+          message: error.message,
+          issues: error.issues,
+        });
       }
       if (error instanceof SubmissionPersistenceError) {
         throw new ServiceUnavailableException({

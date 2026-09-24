@@ -1,27 +1,36 @@
 export class PublishedFormNotFoundError extends Error {
-  constructor(readonly formId: string) {
-    super(`No published form exists for ${formId}`);
+  constructor(formId: string) {
+    super(`No published form version exists for "${formId}"`);
     this.name = "PublishedFormNotFoundError";
   }
 }
 
 export class IdempotencyConflictError extends Error {
   constructor() {
-    super("The idempotency key was already used for a different request");
+    super("Idempotency-Key was already used for a different submission");
     this.name = "IdempotencyConflictError";
   }
 }
 
 export class ConsentRecordNotFoundError extends Error {
-  constructor(readonly consentRecordId: string) {
-    super("The referenced consent record does not exist");
+  constructor(consentRecordId: string) {
+    super(`Consent record "${consentRecordId}" does not exist`);
     this.name = "ConsentRecordNotFoundError";
+  }
+}
+
+export class SubmissionFormValidationError extends Error {
+  constructor(
+    readonly issues: Array<{ field: string; message: string }>,
+  ) {
+    super("Submission does not satisfy the published form version");
+    this.name = "SubmissionFormValidationError";
   }
 }
 
 export class SubmissionPersistenceError extends Error {
   constructor(cause: unknown) {
-    super("Submission persistence is unavailable", { cause });
+    super("Submission could not be durably accepted", { cause });
     this.name = "SubmissionPersistenceError";
   }
 }

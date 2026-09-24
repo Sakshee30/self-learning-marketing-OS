@@ -1,13 +1,23 @@
 # GrowthOS Website API
 
-Separate backend boundary for public website operations. This service owns runtime form submission acceptance, consent records, attribution capture contracts, and will later own delivery state and approved website integrations. It is intentionally separate from the static public website, customer SaaS, and platform administration apps.
+Separate backend boundary for public website operations. This service owns runtime form rules, form submission acceptance, consent records, attribution capture contracts, and delivery state. It is intentionally separate from the static public website, CMS database, customer SaaS, and platform administration apps.
 
 ## Implemented
 
 - `GET /health`
+- `PUT /v1/internal/forms/:formId/published-version`
+  - authenticated server-to-server CMS/publishing synchronization
+  - strict structured form schema validation
+  - immutable source-revision identity
+  - one published runtime form version per form
+  - previous published version archived transactionally
+  - idempotent replay for the same approved source revision
+  - per-form PostgreSQL advisory lock to serialize concurrent publication
 - `POST /v1/forms/:formId/submissions`
   - published form-version lookup
-  - bounded validation
+  - runtime validation against structured published form fields
+  - backward compatibility for legacy manually seeded unstructured schemas
+  - bounded request validation
   - optional idempotency
   - optional reference to a durable consent record
   - validated first/last-touch attribution data
@@ -31,7 +41,15 @@ Separate backend boundary for public website operations. This service owns runti
   - uses bounded exponential retry backoff
   - dead-letters work after the configured maximum attempt count
 
-A successful `202` means the relevant record and its outbox event were durably committed. It does **not** mean CRM, email, analytics, advertising, or any other downstream destination completed work.
+A successful submission `202` means the submission and its outbox event were durably committed. It does **not** mean CRM, email, analytics, advertising, or any other downstream destination completed work.
+
+## Form publication boundary
+
+The CMS owns authoring and editorial workflow. The Website API owns runtime form rules and submissions. The CMS or publishing worker must synchronize an approved, exact form revision through the authenticated internal endpoint rather than writing directly into Website API tables.
+
+`CMS_SYNC_TOKEN` enables that internal endpoint. When it is not configured, the synchronization endpoint fails closed with `503`; public submission and consent APIs continue to operate against the last published runtime version.
+
+The source revision is a SHA-256 digest supplied by the publishing side. Re-sending the same revision is idempotent. Publishing a different revision archives the previous runtime version and creates the next version in one database transaction.
 
 ## Consent boundary
 
@@ -64,7 +82,7 @@ npm run db:migrate
 npm run dev
 ```
 
-Before a form can accept submissions, a publishing/CMS process must create exactly one `published` row in `website_form_versions` for that `form_id`. This service does not seed production form definitions.
+A form can accept submissions only after a published runtime form version exists. New publishing integrations should use the authenticated form-publication endpoint rather than direct database writes.
 
 ## Verification
 
@@ -83,4 +101,4 @@ CI provisions PostgreSQL, applies migrations, and runs the integration suite.
 
 ## Not yet implemented
 
-Approved legal/privacy content, runtime consent-policy evaluation per destination, analytics execution, provider-specific CRM/email adapters, operator retry tooling/UI, production edge controls, and recovery/load qualification remain separate phases.
+The CMS-side release worker that calls the form-publication endpoint, release manifests and promotion/rollback, approved legal/privacy content, runtime consent-policy evaluation per destination, analytics execution, provider-specific CRM/email adapters, operator retry tooling/UI, production edge controls, and recovery/load qualification remain separate phases.
