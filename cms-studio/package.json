@@ -12,7 +12,7 @@
     "generate:types": "payload generate:types",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts",
-    "build": "payload build",
+    "build": "next build",
     "security:check": "npm audit --omit=dev --audit-level=high",
     "check": "npm run generate:importmap && npm run typecheck && npm test && npm run build && npm run security:check"
   },
