@@ -32,7 +32,7 @@ export class ConsentRepository {
             body.policyVersion,
             JSON.stringify(body.decisions),
             JSON.stringify(body.source),
-            recoredAt,
+            recordedAt,
           ],
         );
 
