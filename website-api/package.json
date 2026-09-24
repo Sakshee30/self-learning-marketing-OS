@@ -7,8 +7,8 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/src/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run tests/unit",
-    "test:integration": "vitest run tests/integration",
+    "test": "vitest run --config vitest.config.ts tests/unit",
+    "test:integration": "vitest run --config vitest.config.ts tests/integration",
     "db:migrate": "tsx scripts/migrate.ts",
     "check": "npm run typecheck && npm test && npm run build"
   },
