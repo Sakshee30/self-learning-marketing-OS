@@ -3,7 +3,7 @@ import { publishFormVersionToWebsiteApi } from '../src/integrations/website-api/
 
 describe('Website API form publication adapter', () => {
   it('sends the approved revision through the authenticated internal contract', async () => {
-    const fetchImpl = vi.fn(async () =>
+    const fetchMock = vi.fn(async () =>
       new Response(
         JSON.stringify({
           formId: 'request-access',
@@ -15,7 +15,8 @@ describe('Website API form publication adapter', () => {
         }),
         { status: 200, headers: { 'content-type': 'application/json' } },
       ),
-    ) as unknown as typeof fetch
+    )
+    const fetchImpl = fetchMock as unknown as typeof fetch
 
     const receipt = await publishFormVersionToWebsiteApi(
       {
@@ -34,8 +35,8 @@ describe('Website API form publication adapter', () => {
     )
 
     expect(receipt.version).toBe(1)
-    expect(fetchImpl).toHaveBeenCalledOnce()
-    const [url, options] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit]
+    expect(fetchMock).toHaveBeenCalledOnce()
+    const [url, options] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
     expect(url).toBe('http://website-api.test/v1/internal/forms/request-access/published-version')
     expect(options.method).toBe('PUT')
     expect((options.headers as Record<string, string>).authorization).toBe(
@@ -44,7 +45,8 @@ describe('Website API form publication adapter', () => {
   })
 
   it('does not treat a rejected synchronization as success', async () => {
-    const fetchImpl = vi.fn(async () => new Response('', { status: 503 })) as unknown as typeof fetch
+    const fetchMock = vi.fn(async () => new Response('', { status: 503 }))
+    const fetchImpl = fetchMock as unknown as typeof fetch
 
     await expect(
       publishFormVersionToWebsiteApi(
