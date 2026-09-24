@@ -1,0 +1,81 @@
+openapi: 3.1.0
+info:
+  title: GrowthOS Website API
+  version: 0.1.0
+paths:
+  /health:
+    get:
+      summary: Service health
+      responses:
+        "200":
+          description: Service is running
+  /v1/forms/{formId}/submissions:
+    post:
+      summary: Durably accept a published website form submission
+      parameters:
+        - in: path
+          name: formId
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-z0-9][a-z0-9_-]{1,63}$'
+        - in: header
+          name: Idempotency-Key
+          required: false
+          schema:
+            type: string
+            minLength: 8
+            maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [fields]
+              properties:
+                fields:
+                  type: object
+                  minProperties: 1
+                  maxProperties: 50
+                  additionalProperties:
+                    oneOf:
+                      - type: string
+                        maxLength: 5000
+                      - type: number
+                      - type: boolean
+                      - type: "null"
+                      - type: array
+                        maxItems: 100
+                        items:
+                          oneOf:
+                            - type: string
+                              maxLength: 5000
+                            - type: number
+                            - type: boolean
+                            - type: "null"
+                source:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    path:
+                      type: string
+                      maxLength: 2048
+                    referrer:
+                      type: string
+                      maxLength: 2048
+                    campaignId:
+                      type: string
+                      maxLength: 128
+      responses:
+        "202":
+          description: Submission and outbox event were durably stored
+        "400":
+          description: Invalid path, header, or request body
+        "404":
+          description: No published version exists for the requested form
+        "409":
+          description: Idempotency key was reused for a different request
+        "503":
+          description: Durable acceptance is currently unavailable

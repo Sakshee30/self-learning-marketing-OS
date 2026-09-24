@@ -2,15 +2,22 @@
 
 AI-native autonomous growth operating system for planning, executing, measuring, learning, and continuously improving marketing with human approval for consequential actions.
 
-## Frontend-first implementation
+## Application boundaries
 
-This repository starts with a production-oriented React + TypeScript frontend. The UI is deliberately API-ready so the backend can be attached without redesigning the application.
+The repository now keeps the principal delivery surfaces separate:
 
-### Core operating loop
+- Root `src/` — authenticated customer SaaS frontend.
+- `frontend/platform-admin/` — privileged platform control frontend.
+- `website/` — independently deployable public marketing website.
+- `website-api/` — public runtime API for durable website submissions and future website-owned operations.
 
-**Goal → Decide → Execute → Measure → Learn → Correct**
+The public website does not connect directly to PostgreSQL, CRM, email, or customer-app internals. Dynamic public operations cross the Website API boundary.
 
-### Main product areas
+## Core operating loop
+
+**Goal → Observe → Understand → Predict → Decide → Simulate → Approve → Execute → Measure → Learn → Correct → Repeat**
+
+## Main product areas
 
 - AI Command Center / AI CMO
 - Business World Model
@@ -36,7 +43,7 @@ This repository starts with a production-oriented React + TypeScript frontend. T
 - Billing
 - SaaS Super Admin
 
-## Local development
+## Customer frontend development
 
 ```bash
 npm install
@@ -45,18 +52,26 @@ npm run dev
 
 Open http://localhost:5173
 
-## Demo roles
+## Public website development
 
-The frontend includes a role switcher so permission-aware experiences can be reviewed before backend identity is connected:
+```bash
+cd website
+npm install
+npm run dev
+```
 
-- Super Admin
-- Workspace Owner
-- Workspace Admin
-- Marketing Manager
-- Analyst
-- Approver
-- Viewer
+## Website API development
+
+```bash
+cd website-api
+cp .env.example .env
+npm install
+npm run db:migrate
+npm run dev
+```
+
+The API does not seed a fake published form. A CMS/publishing process must create the published form version before public submissions are accepted.
 
 ## Production posture
 
-The current milestone is frontend-only. Actions are represented by typed mock services and approval-aware UI states; no production marketing changes are executed from the browser until backend policy, authentication, audit, and execution services are connected.
+The customer product remains frontend-first. The public website is a static publishing boundary, while the Website API now has a real PostgreSQL transaction boundary for durable submission + outbox acceptance. CMS authoring, consent policy, delivery workers, external provider execution, production infrastructure, and complete security/accessibility qualification remain separate implementation phases and are not represented as completed.
