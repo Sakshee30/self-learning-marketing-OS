@@ -97,3 +97,38 @@ jobs:
         run: npm run test:integration
       - name: Verify Website API type safety, unit tests and build
         run: npm run check
+
+  cms-studio:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: growthos
+          POSTGRES_PASSWORD: growthos
+          POSTGRES_DB: growthos_cms
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U growthos -d growthos_cms"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://growthos:growthos@127.0.0.1:5432/growthos_cms
+      PAYLOAD_SECRET: ci-only-growthos-payload-secret-not-for-production
+      PAYLOAD_PUBLIC_SERVER_URL: http://localhost:3003
+    defaults:
+      run:
+        working-directory: cms-studio
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24.15.0
+      - name: Install CMS Studio dependencies
+        run: npm install
+      - name: Verify CMS Studio types, tests, production build and dependency gate
+        run: npm run check

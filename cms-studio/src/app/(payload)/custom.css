@@ -1,0 +1,12 @@
+:root {
+  --growthos-studio-accent: #6757e8;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+.payload__admin-bar {
+  border-bottom-color: color-mix(in srgb, var(--growthos-studio-accent) 18%, transparent);
+}
