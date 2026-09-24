@@ -5,21 +5,17 @@ import { importMap } from '../importMap'
 
 type Args = {
   params: Promise<{
-    segments?: string[]
+    segments: string[]
   }>
   searchParams: Promise<{
-    [key: string]: string | string[] | undefined
+    [key: string]: string | string[]
   }>
 }
 
 export const generateMetadata = ({ params, searchParams }: Args): Promise<Metadata> =>
   generatePageMetadata({ config, params, searchParams })
 
-export default function Page({ params, searchParams }: Args) {
-  return RootPage({
-    config,
-    params,
-    searchParams,
-    importMap,
-  })
-}
+const Page = ({ params, searchParams }: Args) =>
+  RootPage({ config, params, searchParams, importMap })
+
+export default Page
