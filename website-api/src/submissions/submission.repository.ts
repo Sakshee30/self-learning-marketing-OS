@@ -9,6 +9,7 @@ import {
   ConsentRecordNotFoundError,
   IdempotencyConflictError,
   PublishedFormNotFoundError,
+  PublishedFormVersionNotFoundError,
   SubmissionFormValidationError,
   SubmissionPersistenceError,
 } from "./submission.errors";
@@ -42,6 +43,7 @@ export class SubmissionRepository {
     } catch (error) {
       if (
         error instanceof PublishedFormNotFoundError ||
+        error instanceof PublishedFormVersionNotFoundError ||
         error instanceof IdempotencyConflictError ||
         error instanceof ConsentRecordNotFoundError ||
         error instanceof SubmissionFormValidationError
@@ -69,18 +71,7 @@ export class SubmissionRepository {
       if (!consent.rows[0]) throw new ConsentRecordNotFoundError(input.body.consentRecordId);
     }
 
-    const publishedForm = await client.query<PublishedFormRow>(
-      `SELECT id, schema
-         FROM website_form_versions
-        WHERE form_id = $1 AND status = 'published'
-        ORDER BY version DESC
-        LIMIT 1
-        FOR SHARE`,
-      [input.formId],
-    );
-
-    const formVersion = publishedForm.rows[0];
-    if (!formVersion) throw new PublishedFormNotFoundError(input.formId);
+    const formVersion = await this.resolveFormVersion(client, input.formId, input.body.formVersionId);
 
     const formIssues = validateSubmissionFields(formVersion.schema, input.body.fields);
     if (formIssues.length > 0) {
@@ -144,6 +135,39 @@ export class SubmissionRepository {
     );
 
     return this.toReceipt(created, input.formId, false);
+  }
+
+  private async resolveFormVersion(
+    client: PoolClient,
+    formId: string,
+    requestedVersionId: string | undefined,
+  ): Promise<PublishedFormRow> {
+    if (requestedVersionId) {
+      const exact = await client.query<PublishedFormRow>(
+        `SELECT id, schema
+           FROM website_form_versions
+          WHERE id = $1 AND form_id = $2
+          LIMIT 1
+          FOR SHARE`,
+        [requestedVersionId, formId],
+      );
+      const row = exact.rows[0];
+      if (!row) throw new PublishedFormVersionNotFoundError(requestedVersionId);
+      return row;
+    }
+
+    const published = await client.query<PublishedFormRow>(
+      `SELECT id, schema
+         FROM website_form_versions
+        WHERE form_id = $1 AND status = 'published'
+        ORDER BY version DESC
+        LIMIT 1
+        FOR SHARE`,
+      [formId],
+    );
+    const row = published.rows[0];
+    if (!row) throw new PublishedFormNotFoundError(formId);
+    return row;
   }
 
   private async findExisting(client: PoolClient, formId: string, idempotencyKey: string) {

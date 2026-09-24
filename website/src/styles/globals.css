@@ -57,7 +57,8 @@ a {
 
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
 }
 
@@ -65,6 +66,7 @@ button,
 a,
 input,
 textarea,
+select,
 summary {
   outline: none;
 }
@@ -73,6 +75,7 @@ button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
+select:focus-visible,
 summary:focus-visible {
   outline: 3px solid rgba(103, 87, 232, 0.32);
   outline-offset: 3px;
@@ -1501,10 +1504,38 @@ p {
   gap: 18px;
 }
 
-.field-grid {
+.field-grid,
+.dynamic-field-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
+}
+
+.dynamic-field-textarea,
+.dynamic-field-checkbox {
+  grid-column: 1 / -1;
+}
+
+.published-form-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 12px;
+  border: 1px solid rgba(103, 87, 232, 0.16);
+  border-radius: 12px;
+  background: var(--brand-soft);
+}
+
+.published-form-meta span {
+  color: var(--brand-strong);
+  font-size: 0.68rem;
+  font-weight: 760;
+}
+
+.published-form-meta strong {
+  color: var(--ink);
+  font-size: 0.76rem;
 }
 
 .contact-form label {
@@ -1519,7 +1550,8 @@ p {
 }
 
 .contact-form input,
-.contact-form textarea {
+.contact-form textarea,
+.contact-form select {
   width: 100%;
   border: 1px solid var(--line-strong);
   border-radius: 12px;
@@ -1542,8 +1574,14 @@ p {
   resize: vertical;
 }
 
+.contact-form select {
+  min-height: 46px;
+  padding: 0 40px 0 13px;
+}
+
 .contact-form input:focus,
-.contact-form textarea:focus {
+.contact-form textarea:focus,
+.contact-form select:focus {
   border-color: var(--brand);
   background: #fff;
   box-shadow: 0 0 0 3px rgba(103, 87, 232, 0.1);
@@ -1551,6 +1589,81 @@ p {
 
 .contact-form .button {
   justify-self: start;
+}
+
+.checkbox-field {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 10px !important;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fbfcfe;
+}
+
+.checkbox-field input {
+  width: 18px;
+  min-height: 18px;
+  margin: 2px 0 0;
+  flex: 0 0 auto;
+  accent-color: var(--brand);
+}
+
+.checkbox-field > span {
+  display: grid;
+  gap: 4px;
+}
+
+.contact-form label > span em {
+  color: var(--danger);
+  font-style: normal;
+}
+
+.field-error {
+  color: #b24358;
+  font-size: 0.7rem;
+  font-weight: 650;
+}
+
+.contact-form [aria-invalid="true"] {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px rgba(228, 90, 119, 0.08);
+}
+
+.contact-form-state {
+  display: flex;
+  min-height: 120px;
+  align-items: center;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fbfcfe;
+  color: var(--muted-strong);
+  font-size: 0.82rem;
+}
+
+.contact-form-state-error {
+  display: grid;
+  align-items: start;
+}
+
+.contact-form-state-error strong {
+  color: #b24358;
+}
+
+.contact-form-state-error .button {
+  justify-self: start;
+  margin-top: 4px;
+}
+
+.form-loading-dot {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 5px rgba(103, 87, 232, 0.12);
 }
 
 .form-status {
@@ -1841,8 +1954,15 @@ p {
     gap: 18px;
   }
 
-  .field-grid {
+  .field-grid,
+  .dynamic-field-grid {
     grid-template-columns: 1fr;
+  }
+
+  .published-form-meta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
   }
 
   .contact-expectations div {

@@ -1,59 +1,61 @@
-export type ContactRequestFields = {
-  name: string;
-  email: string;
-  company: string;
-  goal: string;
+import {
+  contactApiUrl,
+  resolveContactApiConfig
+} from "@/src/features/contact/contact-api-config";
+
+export type ContactFieldValue =
+  | string
+  | number
+  | boolean
+  | null
+  | Array<string | number | boolean | null>;
+
+export type ContactRequestFields = Record<string, ContactFieldValue>;
+
+export type ContactValidationIssue = {
+  field: string;
+  message: string;
 };
 
 export type ContactSubmissionResult =
   | { kind: "accepted" }
   | { kind: "unconfigured" }
   | { kind: "misconfigured" }
-  | { kind: "rejected"; status: number }
+  | { kind: "rejected"; status: number; issues?: ContactValidationIssue[] }
   | { kind: "timeout" }
   | { kind: "unavailable" };
 
 const requestTimeoutMs = 12_000;
 
-function resolveSubmissionEndpoint(): URL | "unconfigured" | "misconfigured" {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_MARKETING_API_BASE_URL?.trim();
-  const formId = process.env.NEXT_PUBLIC_CONTACT_FORM_ID?.trim();
+function parseValidationIssues(value: unknown): ContactValidationIssue[] | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const issues = (value as { issues?: unknown }).issues;
+  if (!Array.isArray(issues)) return undefined;
 
-  if (!apiBaseUrl && !formId) {
-    return "unconfigured";
-  }
+  const parsed = issues
+    .filter(
+      (issue): issue is { field: string; message: string } =>
+        Boolean(issue) &&
+        typeof issue === "object" &&
+        typeof (issue as { field?: unknown }).field === "string" &&
+        typeof (issue as { message?: unknown }).message === "string"
+    )
+    .map((issue) => ({ field: issue.field, message: issue.message }));
 
-  if (!apiBaseUrl || !formId) {
-    return "misconfigured";
-  }
-
-  let endpoint: URL;
-
-  try {
-    endpoint = new URL(
-      `/v1/forms/${encodeURIComponent(formId)}/submissions`,
-      apiBaseUrl.endsWith("/") ? apiBaseUrl : `${apiBaseUrl}/`
-    );
-  } catch {
-    return "misconfigured";
-  }
-
-  if (endpoint.protocol !== "https:" && endpoint.protocol !== "http:") {
-    return "misconfigured";
-  }
-
-  return endpoint;
+  return parsed.length > 0 ? parsed : undefined;
 }
 
 export async function submitContactRequest(
-  fields: ContactRequestFields
+  fields: ContactRequestFields,
+  formVersionId?: string
 ): Promise<ContactSubmissionResult> {
-  const endpoint = resolveSubmissionEndpoint();
+  const configuration = resolveContactApiConfig();
 
-  if (endpoint === "unconfigured" || endpoint === "misconfigured") {
-    return { kind: endpoint };
+  if (configuration.kind !== "configured") {
+    return { kind: configuration.kind };
   }
 
+  const endpoint = contactApiUrl(configuration.config, "submissions");
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), requestTimeoutMs);
 
@@ -67,6 +69,7 @@ export async function submitContactRequest(
         "content-type": "application/json"
       },
       body: JSON.stringify({
+        ...(formVersionId ? { formVersionId } : {}),
         fields,
         source: {
           path: "/contact"
@@ -76,9 +79,18 @@ export async function submitContactRequest(
     });
 
     if (!response.ok) {
+      let issues: ContactValidationIssue[] | undefined;
+      if (response.status === 400) {
+        try {
+          issues = parseValidationIssues(await response.json());
+        } catch {
+          issues = undefined;
+        }
+      }
       return {
         kind: "rejected",
-        status: response.status
+        status: response.status,
+        ...(issues ? { issues } : {})
       };
     }
 

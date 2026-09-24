@@ -88,3 +88,10 @@ POST /v1/forms/{formId}/submissions
 ```
 
 The API must provide durable acceptance, validation, consent policy, abuse protection, and asynchronous downstream delivery before this workflow is considered production-ready.
+
+
+## CMS-managed request-access form
+
+When `NEXT_PUBLIC_MARKETING_API_BASE_URL` and `NEXT_PUBLIC_CONTACT_FORM_ID` are configured, the contact page loads the currently published runtime schema from the Website API and renders supported text, email, textarea, select, and checkbox fields. The frontend sends the exact rendered `formVersionId` back with the submission so the backend validates the same version the visitor saw.
+
+If the Website API is not configured, local/static builds retain the existing preview form but do not report a successful submission. If the API is configured but the published schema cannot be loaded, the page fails visibly with a retry action instead of silently rendering stale field definitions.

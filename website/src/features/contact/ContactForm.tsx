@@ -1,10 +1,16 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import {
+  loadPublishedContactForm,
+  type PublishedContactForm,
+  type PublishedFormField
+} from "@/src/features/contact/published-contact-form";
 import {
   submitContactRequest,
   type ContactRequestFields,
-  type ContactSubmissionResult
+  type ContactSubmissionResult,
+  type ContactValidationIssue
 } from "@/src/features/contact/submit-contact-request";
 
 type SubmissionState =
@@ -13,13 +19,41 @@ type SubmissionState =
   | { kind: "success"; message: string }
   | { kind: "error"; message: string };
 
+type FormState =
+  | { kind: "loading" }
+  | { kind: "published"; form: PublishedContactForm }
+  | { kind: "fallback"; reason: "unconfigured" }
+  | { kind: "error"; message: string };
+
+const fallbackForm: PublishedContactForm = {
+  formId: "local-fallback",
+  formVersionId: "local-fallback",
+  version: 0,
+  sourceRevision: null,
+  publishedAt: "",
+  schema: {
+    name: "Request access",
+    fields: [
+      { name: "name", label: "Name", type: "text", required: true },
+      { name: "email", label: "Work email", type: "email", required: true },
+      { name: "company", label: "Company", type: "text", required: false },
+      {
+        name: "goal",
+        label: "What marketing outcome are you trying to improve?",
+        type: "textarea",
+        required: true
+      }
+    ]
+  }
+};
+
 function messageFor(result: ContactSubmissionResult): SubmissionState {
   switch (result.kind) {
     case "accepted":
       return {
         kind: "success",
         message:
-          "Your request was accepted by the configured Website API. The downstream follow-up workflow is separate from this confirmation."
+          "Your request was accepted by the Website API. CRM, email, and follow-up delivery continue asynchronously."
       };
     case "unconfigured":
       return {
@@ -39,104 +73,256 @@ function messageFor(result: ContactSubmissionResult): SubmissionState {
         message:
           result.status >= 500
             ? "The contact service could not accept the request. No success has been recorded."
-            : "The contact service rejected this request. Review the form fields and try again."
+            : "Some information does not match the published form you opened. Review the highlighted fields and try again."
       };
     case "timeout":
       return {
         kind: "error",
         message:
-          "The contact service did not confirm acceptance in time. The website is not treating this request as successfully submitted."
+          "The contact service did not confirm acceptance in time. The website is not treating this request as submitted."
       };
     case "unavailable":
       return {
         kind: "error",
         message:
-          "The contact service could not be reached. The website is not treating this request as successfully submitted."
+          "The contact service could not be reached. The website is not treating this request as submitted."
       };
   }
 }
 
-function contactFieldsFrom(form: HTMLFormElement): ContactRequestFields {
-  const data = new FormData(form);
+function autocompleteFor(field: PublishedFormField): string | undefined {
+  const normalized = field.name.toLowerCase();
+  if (field.type === "email" || normalized.includes("email")) return "email";
+  if (normalized === "name" || normalized.endsWith("name")) return "name";
+  if (normalized.includes("company") || normalized.includes("organization")) return "organization";
+  return undefined;
+}
 
-  return {
-    name: String(data.get("name") ?? "").trim(),
-    email: String(data.get("email") ?? "").trim(),
-    company: String(data.get("company") ?? "").trim(),
-    goal: String(data.get("goal") ?? "").trim()
-  };
+function valueFromFormData(field: PublishedFormField, data: FormData) {
+  if (field.type === "checkbox") {
+    return data.get(field.name) === "on";
+  }
+  return String(data.get(field.name) ?? "").trim();
+}
+
+function fieldsFromForm(form: HTMLFormElement, fields: PublishedFormField[]): ContactRequestFields {
+  const data = new FormData(form);
+  return Object.fromEntries(fields.map((field) => [field.name, valueFromFormData(field, data)]));
+}
+
+function issuesByField(issues: ContactValidationIssue[] | undefined) {
+  return new Map((issues ?? []).map((issue) => [issue.field, issue.message]));
 }
 
 export function ContactForm() {
+  const [formState, setFormState] = useState<FormState>({ kind: "loading" });
   const [state, setState] = useState<SubmissionState>({ kind: "idle", message: "" });
+  const [fieldIssues, setFieldIssues] = useState<ContactValidationIssue[]>([]);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    setFormState({ kind: "loading" });
+
+    loadPublishedContactForm().then((result) => {
+      if (cancelled) return;
+
+      switch (result.kind) {
+        case "loaded":
+          setFormState({ kind: "published", form: result.form });
+          return;
+        case "unconfigured":
+          setFormState({ kind: "fallback", reason: "unconfigured" });
+          return;
+        case "misconfigured":
+          setFormState({ kind: "error", message: "The website form configuration is incomplete." });
+          return;
+        case "not_found":
+          setFormState({ kind: "error", message: "No published request-access form is currently available." });
+          return;
+        case "timeout":
+          setFormState({ kind: "error", message: "The published form configuration did not load in time." });
+          return;
+        case "unavailable":
+          setFormState({ kind: "error", message: "The published form service is temporarily unavailable." });
+          return;
+        case "invalid_response":
+          setFormState({ kind: "error", message: "The published form configuration could not be verified." });
+          return;
+        case "rejected":
+          setFormState({
+            kind: "error",
+            message:
+              result.status >= 500
+                ? "The form service could not load the published configuration."
+                : "The form service rejected the published-form request."
+          });
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadKey]);
+
+  const activeForm =
+    formState.kind === "published"
+      ? formState.form
+      : formState.kind === "fallback"
+        ? fallbackForm
+        : null;
+  const issueMap = useMemo(() => issuesByField(fieldIssues), [fieldIssues]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    if (state.kind === "submitting") {
-      return;
-    }
+    if (state.kind === "submitting" || !activeForm) return;
 
     const form = event.currentTarget;
-    const fields = contactFieldsFrom(form);
-
-    if (!fields.name || !fields.email || !fields.goal) {
-      setState({
-        kind: "error",
-        message: "Name, work email, and the marketing outcome are required."
-      });
-      return;
-    }
-
+    setFieldIssues([]);
     setState({ kind: "submitting", message: "Submitting your request…" });
 
-    const result = await submitContactRequest(fields);
-    const nextState = messageFor(result);
+    const result = await submitContactRequest(
+      fieldsFromForm(form, activeForm.schema.fields),
+      formState.kind === "published" ? activeForm.formVersionId : undefined
+    );
 
+    if (result.kind === "rejected" && result.issues) {
+      setFieldIssues(result.issues);
+    }
+
+    const nextState = messageFor(result);
     if (nextState.kind === "success") {
       form.reset();
     }
-
     setState(nextState);
   }
+
+  if (formState.kind === "loading") {
+    return (
+      <div className="contact-form-state" role="status" aria-live="polite">
+        <span className="form-loading-dot" aria-hidden="true" />
+        Loading the published form…
+      </div>
+    );
+  }
+
+  if (formState.kind === "error") {
+    return (
+      <div className="contact-form-state contact-form-state-error" role="alert">
+        <strong>Form unavailable</strong>
+        <span>{formState.message}</span>
+        <button
+          className="button button-secondary button-small"
+          type="button"
+          onClick={() => setReloadKey((key) => key + 1)}
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
+
+  if (!activeForm) return null;
 
   const submitting = state.kind === "submitting";
 
   return (
     <form className="contact-form" onSubmit={submit} aria-busy={submitting}>
-      <div className="field-grid">
-        <label>
-          <span>Name</span>
-          <input autoComplete="name" name="name" required disabled={submitting} />
-        </label>
-        <label>
-          <span>Work email</span>
-          <input
-            autoComplete="email"
-            inputMode="email"
-            name="email"
-            required
-            type="email"
-            disabled={submitting}
-          />
-        </label>
+      <div className="published-form-meta" aria-live="polite">
+        <span>
+          {formState.kind === "published"
+            ? `CMS-managed form · Version ${activeForm.version}`
+            : "Preview form · Website API not connected"}
+        </span>
+        {activeForm.schema.name ? <strong>{activeForm.schema.name}</strong> : null}
       </div>
 
-      <label>
-        <span>Company</span>
-        <input autoComplete="organization" name="company" disabled={submitting} />
-      </label>
+      <div className="dynamic-field-grid">
+        {activeForm.schema.fields.map((field) => {
+          const error = issueMap.get(field.name);
+          const describedBy = error ? `${field.name}-error` : undefined;
+          const fieldClass = `dynamic-field dynamic-field-${field.type}`;
 
-      <label>
-        <span>What marketing outcome are you trying to improve?</span>
-        <textarea
-          name="goal"
-          required
-          rows={5}
-          disabled={submitting}
-          placeholder="For example: improve qualified pipeline while keeping CAC inside a defined ceiling."
-        />
-      </label>
+          if (field.type === "checkbox") {
+            return (
+              <label className={`${fieldClass} checkbox-field`} key={field.name}>
+                <input
+                  name={field.name}
+                  type="checkbox"
+                  required={field.required}
+                  disabled={submitting}
+                  aria-invalid={Boolean(error)}
+                  aria-describedby={describedBy}
+                />
+                <span>
+                  {field.label}
+                  {field.required ? <em aria-hidden="true"> *</em> : null}
+                  {error ? (
+                    <small id={describedBy} className="field-error">
+                      {error}
+                    </small>
+                  ) : null}
+                </span>
+              </label>
+            );
+          }
+
+          return (
+            <label className={fieldClass} key={field.name}>
+              <span>
+                {field.label}
+                {field.required ? <em aria-hidden="true"> *</em> : null}
+              </span>
+
+              {field.type === "textarea" ? (
+                <textarea
+                  name={field.name}
+                  required={field.required}
+                  rows={5}
+                  disabled={submitting}
+                  aria-invalid={Boolean(error)}
+                  aria-describedby={describedBy}
+                />
+              ) : field.type === "select" ? (
+                <select
+                  name={field.name}
+                  required={field.required}
+                  disabled={submitting}
+                  aria-invalid={Boolean(error)}
+                  aria-describedby={describedBy}
+                  defaultValue=""
+                >
+                  <option value="" disabled>
+                    Select an option
+                  </option>
+                  {(field.options ?? []).map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  autoComplete={autocompleteFor(field)}
+                  inputMode={field.type === "email" ? "email" : undefined}
+                  name={field.name}
+                  required={field.required}
+                  type={field.type}
+                  disabled={submitting}
+                  aria-invalid={Boolean(error)}
+                  aria-describedby={describedBy}
+                />
+              )}
+
+              {error ? (
+                <small id={describedBy} className="field-error">
+                  {error}
+                </small>
+              ) : null}
+            </label>
+          );
+        })}
+      </div>
 
       <button className="button button-primary" disabled={submitting} type="submit">
         {submitting ? "Submitting…" : "Request access"}

@@ -5,6 +5,10 @@ Separate backend boundary for public website operations. This service owns runti
 ## Implemented
 
 - `GET /health`
+- `GET /v1/forms/:formId/published-schema`
+  - public read-only runtime form schema
+  - returns only the active published version and safe rendering metadata
+  - validates stored schema before returning it
 - `PUT /v1/internal/forms/:formId/published-version`
   - authenticated server-to-server CMS/publishing synchronization
   - strict structured form schema validation
@@ -14,8 +18,9 @@ Separate backend boundary for public website operations. This service owns runti
   - idempotent replay for the same approved source revision
   - per-form PostgreSQL advisory lock to serialize concurrent publication
 - `POST /v1/forms/:formId/submissions`
-  - published form-version lookup
-  - runtime validation against structured published form fields
+  - exact rendered `formVersionId` binding when supplied by the frontend
+  - backward-compatible latest-published lookup for older clients
+  - runtime validation against the exact structured form version the visitor saw
   - backward compatibility for legacy manually seeded unstructured schemas
   - bounded request validation
   - optional idempotency
@@ -82,7 +87,7 @@ npm run db:migrate
 npm run dev
 ```
 
-A form can accept submissions only after a published runtime form version exists. New publishing integrations should use the authenticated form-publication endpoint rather than direct database writes.
+A form can accept submissions only after a published runtime form version exists. Public clients should load `/v1/forms/:formId/published-schema`, render that schema, and send its `formVersionId` back with the submission. New publishing integrations should use the authenticated form-publication endpoint rather than direct database writes.
 
 ## Verification
 

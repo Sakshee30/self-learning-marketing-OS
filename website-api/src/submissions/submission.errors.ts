@@ -5,6 +5,13 @@ export class PublishedFormNotFoundError extends Error {
   }
 }
 
+export class PublishedFormVersionNotFoundError extends Error {
+  constructor(formVersionId: string) {
+    super(`Form version "${formVersionId}" is not available for this form`);
+    this.name = "PublishedFormVersionNotFoundError";
+  }
+}
+
 export class IdempotencyConflictError extends Error {
   constructor() {
     super("Idempotency-Key was already used for a different submission");

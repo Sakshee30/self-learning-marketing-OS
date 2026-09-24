@@ -15,6 +15,7 @@ export const formIdSchema = z.string().regex(/^[a-z0-9][a-z0-9_-]{1,63}$/);
 
 export const submissionBodySchema = z
   .object({
+    formVersionId: z.string().uuid().optional(),
     fields: z
       .record(z.string().min(1).max(64), fieldValue)
       .refine((fields) => Object.keys(fields).length >= 1, "At least one field is required")

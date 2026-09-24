@@ -34,8 +34,9 @@ export default function ContactPage() {
         <div className="contact-card">
           <h2>Tell us what you are trying to improve.</h2>
           <p>
-            The form reports success only after the configured Website API confirms acceptance.
-            Downstream CRM, email, and follow-up delivery remain separate asynchronous operations.
+            The visible fields below come from the currently published Marketing Studio form when
+            the Website API is connected. Submission success is shown only after durable API
+            acceptance; downstream CRM, email, and follow-up delivery remain asynchronous.
           </p>
           <ContactForm />
         </div>

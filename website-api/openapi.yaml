@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: GrowthOS Website API
-  version: 0.4.0
+  version: 0.5.0
 paths:
   /health:
     get:
@@ -9,6 +9,558 @@ paths:
       responses:
         "200":
           description: Service is running
+  /v1/forms/{formId}/published-schema:
+    get:
+      summary: Read the active published runtime schema for a public website form
+      parameters:
+        - in: path
+          name: formId
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-z0-9][a-z0-9_-]{1,63}
+    put:
+      summary: Synchronize one immutable published form version from the authorized publishing pipeline
+      security:
+        - CmsSyncBearer: []
+      parameters:
+        - in: path
+          name: formId
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-z0-9][a-z0-9_-]{1,63}$'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [sourceRevision, schema]
+              properties:
+                sourceRevision:
+                  type: string
+                  pattern: '^[a-fA-F0-9]{64}$'
+                  description: SHA-256 digest identifying the exact approved CMS form revision.
+                schema:
+                  $ref: '#/components/schemas/PublishedForm'
+      responses:
+        "200":
+          description: Published form version synchronized or idempotently replayed
+        "400":
+          description: Invalid form identifier or published form schema
+        "401":
+          description: Missing or invalid CMS synchronization credential
+        "503":
+          description: Synchronization is unconfigured or durable publication is unavailable
+  /v1/consent:
+    post:
+      summary: Durably append a versioned consent preference record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [policyVersion, decisions]
+              properties:
+                subjectId:
+                  type: string
+                  format: uuid
+                  description: Existing opaque consent subject. Omit on the first record to let the API create one.
+                policyVersion:
+                  type: string
+                  minLength: 1
+                  maxLength: 64
+                decisions:
+                  type: object
+                  minProperties: 1
+                  maxProperties: 50
+                  additionalProperties:
+                    enum: [granted, denied]
+                source:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    path:
+                      type: string
+                      maxLength: 2048
+                    locale:
+                      type: string
+                      maxLength: 35
+      responses:
+        "202":
+          description: Consent record and outbox event were durably stored
+        "400":
+          description: Invalid consent record
+        "503":
+          description: Durable consent recording is currently unavailable
+  /v1/forms/{formId}/submissions:
+    post:
+      summary: Durably accept a submission against the currently published form version
+      parameters:
+        - in: path
+          name: formId
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-z0-9][a-z0-9_-]{1,63}$'
+        - in: header
+          name: Idempotency-Key
+          required: false
+          schema:
+            type: string
+            minLength: 8
+            maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [fields]
+              properties:
+                formVersionId:
+                  type: string
+                  format: uuid
+                  description: Exact published form version rendered to the visitor. Older clients may omit it and use the active published version.
+                fields:
+                  type: object
+                  minProperties: 1
+                  maxProperties: 50
+                  additionalProperties:
+                    oneOf:
+                      - type: string
+                        maxLength: 5000
+                      - type: number
+                      - type: boolean
+                      - type: "null"
+                      - type: array
+                        maxItems: 100
+                        items:
+                          oneOf:
+                            - type: string
+                              maxLength: 5000
+                            - type: number
+                            - type: boolean
+                            - type: "null"
+                source:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    path:
+                      type: string
+                      maxLength: 2048
+                    referrer:
+                      type: string
+                      maxLength: 2048
+                    campaignId:
+                      type: string
+                      maxLength: 128
+                consentRecordId:
+                  type: string
+                  format: uuid
+                attribution:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    pageRevision:
+                      type: string
+                      maxLength: 128
+                    experimentVariant:
+                      type: string
+                      maxLength: 128
+                    firstTouch:
+                      $ref: '#/components/schemas/AttributionTouchpoint'
+                    lastTouch:
+                      $ref: '#/components/schemas/AttributionTouchpoint'
+      responses:
+        "202":
+          description: Submission and outbox event were durably stored
+        "400":
+          description: Invalid path, header, body, consent reference, or published form field values
+        "404":
+          description: No published version exists for the requested form
+        "409":
+          description: Idempotency key was reused for a different request
+        "503":
+          description: Durable acceptance is currently unavailable
+components:
+  securitySchemes:
+    CmsSyncBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: service-token
+  schemas:
+    PublishedForm:
+      type: object
+      additionalProperties: false
+      required: [fields]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        fields:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/PublishedFormField'
+    PublishedFormField:
+      type: object
+      additionalProperties: false
+      required: [name, label, type]
+      properties:
+        name:
+          type: string
+          pattern: '^[a-zA-Z][a-zA-Z0-9_-]{0,63}$'
+        label:
+          type: string
+          minLength: 1
+          maxLength: 160
+        type:
+          enum: [text, email, textarea, select, checkbox]
+        required:
+          type: boolean
+        consentDecisionKey:
+          type: string
+          minLength: 1
+          maxLength: 64
+        options:
+          type: array
+          maxItems: 50
+          items:
+            type: object
+            additionalProperties: false
+            required: [label, value]
+            properties:
+              label:
+                type: string
+                minLength: 1
+                maxLength: 120
+              value:
+                type: string
+                minLength: 1
+                maxLength: 120
+    AttributionTouchpoint:
+      type: object
+      additionalProperties: false
+      properties:
+        campaignId:
+          type: string
+          maxLength: 128
+        utmSource:
+          type: string
+          maxLength: 256
+        utmMedium:
+          type: string
+          maxLength: 256
+        utmCampaign:
+          type: string
+          maxLength: 256
+        utmTerm:
+          type: string
+          maxLength: 256
+        utmContent:
+          type: string
+          maxLength: 256
+        landingPath:
+          type: string
+          maxLength: 2048
+        capturedAt:
+          type: string
+          format: date-time
+
+      responses:
+        "200":
+          description: Active published form schema and safe runtime version metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [formId, formVersionId, version, publishedAt, schema]
+                properties:
+                  formId:
+                    type: string
+                  formVersionId:
+                    type: string
+                    format: uuid
+                  version:
+                    type: integer
+                    minimum: 1
+                  sourceRevision:
+                    oneOf:
+                      - type: string
+                        pattern: '^[a-fA-F0-9]{64}
+    put:
+      summary: Synchronize one immutable published form version from the authorized publishing pipeline
+      security:
+        - CmsSyncBearer: []
+      parameters:
+        - in: path
+          name: formId
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-z0-9][a-z0-9_-]{1,63}$'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [sourceRevision, schema]
+              properties:
+                sourceRevision:
+                  type: string
+                  pattern: '^[a-fA-F0-9]{64}$'
+                  description: SHA-256 digest identifying the exact approved CMS form revision.
+                schema:
+                  $ref: '#/components/schemas/PublishedForm'
+      responses:
+        "200":
+          description: Published form version synchronized or idempotently replayed
+        "400":
+          description: Invalid form identifier or published form schema
+        "401":
+          description: Missing or invalid CMS synchronization credential
+        "503":
+          description: Synchronization is unconfigured or durable publication is unavailable
+  /v1/consent:
+    post:
+      summary: Durably append a versioned consent preference record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [policyVersion, decisions]
+              properties:
+                subjectId:
+                  type: string
+                  format: uuid
+                  description: Existing opaque consent subject. Omit on the first record to let the API create one.
+                policyVersion:
+                  type: string
+                  minLength: 1
+                  maxLength: 64
+                decisions:
+                  type: object
+                  minProperties: 1
+                  maxProperties: 50
+                  additionalProperties:
+                    enum: [granted, denied]
+                source:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    path:
+                      type: string
+                      maxLength: 2048
+                    locale:
+                      type: string
+                      maxLength: 35
+      responses:
+        "202":
+          description: Consent record and outbox event were durably stored
+        "400":
+          description: Invalid consent record
+        "503":
+          description: Durable consent recording is currently unavailable
+  /v1/forms/{formId}/submissions:
+    post:
+      summary: Durably accept a submission against the currently published form version
+      parameters:
+        - in: path
+          name: formId
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-z0-9][a-z0-9_-]{1,63}$'
+        - in: header
+          name: Idempotency-Key
+          required: false
+          schema:
+            type: string
+            minLength: 8
+            maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [fields]
+              properties:
+                fields:
+                  type: object
+                  minProperties: 1
+                  maxProperties: 50
+                  additionalProperties:
+                    oneOf:
+                      - type: string
+                        maxLength: 5000
+                      - type: number
+                      - type: boolean
+                      - type: "null"
+                      - type: array
+                        maxItems: 100
+                        items:
+                          oneOf:
+                            - type: string
+                              maxLength: 5000
+                            - type: number
+                            - type: boolean
+                            - type: "null"
+                source:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    path:
+                      type: string
+                      maxLength: 2048
+                    referrer:
+                      type: string
+                      maxLength: 2048
+                    campaignId:
+                      type: string
+                      maxLength: 128
+                consentRecordId:
+                  type: string
+                  format: uuid
+                attribution:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    pageRevision:
+                      type: string
+                      maxLength: 128
+                    experimentVariant:
+                      type: string
+                      maxLength: 128
+                    firstTouch:
+                      $ref: '#/components/schemas/AttributionTouchpoint'
+                    lastTouch:
+                      $ref: '#/components/schemas/AttributionTouchpoint'
+      responses:
+        "202":
+          description: Submission and outbox event were durably stored
+        "400":
+          description: Invalid path, header, body, consent reference, or published form field values
+        "404":
+          description: No published version exists for the requested form
+        "409":
+          description: Idempotency key was reused for a different request
+        "503":
+          description: Durable acceptance is currently unavailable
+components:
+  securitySchemes:
+    CmsSyncBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: service-token
+  schemas:
+    PublishedForm:
+      type: object
+      additionalProperties: false
+      required: [fields]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        fields:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/PublishedFormField'
+    PublishedFormField:
+      type: object
+      additionalProperties: false
+      required: [name, label, type]
+      properties:
+        name:
+          type: string
+          pattern: '^[a-zA-Z][a-zA-Z0-9_-]{0,63}$'
+        label:
+          type: string
+          minLength: 1
+          maxLength: 160
+        type:
+          enum: [text, email, textarea, select, checkbox]
+        required:
+          type: boolean
+        consentDecisionKey:
+          type: string
+          minLength: 1
+          maxLength: 64
+        options:
+          type: array
+          maxItems: 50
+          items:
+            type: object
+            additionalProperties: false
+            required: [label, value]
+            properties:
+              label:
+                type: string
+                minLength: 1
+                maxLength: 120
+              value:
+                type: string
+                minLength: 1
+                maxLength: 120
+    AttributionTouchpoint:
+      type: object
+      additionalProperties: false
+      properties:
+        campaignId:
+          type: string
+          maxLength: 128
+        utmSource:
+          type: string
+          maxLength: 256
+        utmMedium:
+          type: string
+          maxLength: 256
+        utmCampaign:
+          type: string
+          maxLength: 256
+        utmTerm:
+          type: string
+          maxLength: 256
+        utmContent:
+          type: string
+          maxLength: 256
+        landingPath:
+          type: string
+          maxLength: 2048
+        capturedAt:
+          type: string
+          format: date-time
+
+                      - type: "null"
+                  publishedAt:
+                    type: string
+                    format: date-time
+                  schema:
+                    $ref: '#/components/schemas/PublishedForm'
+        "400":
+          description: Invalid form identifier
+        "404":
+          description: No published version exists for the requested form
+        "503":
+          description: Published form configuration is temporarily unavailable
   /v1/internal/forms/{formId}/published-version:
     put:
       summary: Synchronize one immutable published form version from the authorized publishing pipeline

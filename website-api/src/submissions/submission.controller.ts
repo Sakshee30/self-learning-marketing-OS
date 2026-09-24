@@ -20,6 +20,7 @@ import {
   ConsentRecordNotFoundError,
   IdempotencyConflictError,
   PublishedFormNotFoundError,
+  PublishedFormVersionNotFoundError,
   SubmissionFormValidationError,
   SubmissionPersistenceError,
 } from "./submission.errors";
@@ -65,6 +66,12 @@ export class SubmissionController {
     } catch (error) {
       if (error instanceof PublishedFormNotFoundError) {
         throw new NotFoundException({ code: "form_not_published", message: "No published form is available" });
+      }
+      if (error instanceof PublishedFormVersionNotFoundError) {
+        throw new BadRequestException({
+          code: "form_version_not_available",
+          message: error.message,
+        });
       }
       if (error instanceof IdempotencyConflictError) {
         throw new ConflictException({ code: "idempotency_conflict", message: error.message });

@@ -95,6 +95,50 @@ describeWithDatabase("SubmissionRepository with PostgreSQL", () => {
     ).rejects.toBeInstanceOf(IdempotencyConflictError);
   });
 
+  it("binds a submission to the exact rendered form version even after a newer version is published", async () => {
+    const renderedVersionId = randomUUID();
+    const newerVersionId = randomUUID();
+
+    await adminPool.query(
+      `UPDATE website_form_versions SET status = 'archived' WHERE id = $1`,
+      [formVersionId],
+    );
+    await adminPool.query(
+      `INSERT INTO website_form_versions (id, form_id, version, schema, status, published_at)
+       VALUES
+       ($1, $3, 2, $4::jsonb, 'archived', now() - interval '1 second'),
+       ($2, $3, 3, $5::jsonb, 'published', now())`,
+      [
+        renderedVersionId,
+        newerVersionId,
+        formId,
+        JSON.stringify({
+          fields: [{ name: "email", label: "Email", type: "email", required: true }],
+        }),
+        JSON.stringify({
+          fields: [
+            { name: "email", label: "Email", type: "email", required: true },
+            { name: "company", label: "Company", type: "text", required: true },
+          ],
+        }),
+      ],
+    );
+
+    const body = submissionBodySchema.parse({
+      formVersionId: renderedVersionId,
+      fields: { email: "rendered@example.test" },
+      source: { path: "/contact" },
+    });
+    const receipt = await repository.accept({
+      formId,
+      body,
+      requestFingerprint: createRequestFingerprint(body),
+      idempotencyKey: "integration-version-bind",
+    });
+
+    expect(receipt.formVersionId).toBe(renderedVersionId);
+  });
+
   it("rejects a submission that references an unknown consent record", async () => {
     const body = submissionBodySchema.parse({
       fields: { email: "ada@example.test" },
