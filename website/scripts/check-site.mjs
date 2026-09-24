@@ -164,7 +164,7 @@ if (!publishedPages || typeof publishedPages !== "object" || publishedPages.sche
 
     if (
       typeof page.slug !== "string" ||
-      !/^[a-z0-9]+(?:-[a-z0-9]+)*(?:\\/[a-z0-9]+(?:-[a-z0-9]+)*)*$/.test(page.slug)
+      !/^[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)*$/.test(page.slug)
     ) {
       errors.push(`${path}.slug must use lowercase kebab-case path segments.`);
       continue;
