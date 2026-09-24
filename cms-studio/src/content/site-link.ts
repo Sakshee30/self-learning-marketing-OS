@@ -16,3 +16,13 @@ export function validateSiteDestination(value: unknown): true | string {
     return 'Use a site-relative path or a valid HTTPS URL.'
   }
 }
+
+export function validateSiteRelativePath(value: unknown): true | string {
+  if (value === undefined || value === null || value === '') return true
+  if (typeof value !== 'string') return 'Use a site-relative path.'
+
+  const path = value.trim()
+  return path.startsWith('/') && !path.startsWith('//')
+    ? true
+    : 'Use a site-relative path beginning with "/".'
+}

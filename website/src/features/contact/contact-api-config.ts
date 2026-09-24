@@ -8,9 +8,12 @@ export type ContactApiConfigurationResult =
   | { kind: "unconfigured" }
   | { kind: "misconfigured" };
 
-export function resolveContactApiConfig(): ContactApiConfigurationResult {
+export function resolveContactApiConfig(
+  formIdOverride?: string
+): ContactApiConfigurationResult {
   const rawApiBaseUrl = process.env.NEXT_PUBLIC_MARKETING_API_BASE_URL?.trim();
-  const formId = process.env.NEXT_PUBLIC_CONTACT_FORM_ID?.trim();
+  const configuredFormId = process.env.NEXT_PUBLIC_CONTACT_FORM_ID?.trim();
+  const formId = formIdOverride?.trim() || configuredFormId;
 
   if (!rawApiBaseUrl && !formId) {
     return { kind: "unconfigured" };

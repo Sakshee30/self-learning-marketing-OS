@@ -6,6 +6,8 @@ import {
   publishedOrAuthenticated,
 } from '@/access/roles'
 import { controlledContentBlocks } from '@/blocks/content-blocks'
+import { validatePageSlug } from '@/content/page-route'
+import { validateSiteRelativePath } from '@/content/site-link'
 import { enforcePublishingPermission } from '@/workflows/enforce-publishing'
 
 export const Pages: CollectionConfig = {
@@ -46,6 +48,7 @@ export const Pages: CollectionConfig = {
       unique: true,
       index: true,
       maxLength: 180,
+      validate: validatePageSlug,
     },
     {
       name: 'editorialStatus',
@@ -93,6 +96,7 @@ export const Pages: CollectionConfig = {
               name: 'canonicalPath',
               type: 'text',
               maxLength: 2048,
+              validate: validateSiteRelativePath,
               admin: {
                 description: 'Use a validated site-relative canonical route. External canonical handling is a later policy layer.',
               },

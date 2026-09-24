@@ -104,3 +104,12 @@ The header, navigation, primary CTA, footer groups, and footer governance copy n
 Marketing Studio exposes versioned Site Navigation and Site Footer globals. In a release workspace, `cms-studio/npm run snapshot:site` exports only their published revisions into this snapshot. Newer CMS drafts therefore cannot change an already-built public release.
 
 `npm run architecture:check` validates the snapshot schema and rejects empty or unsafe link destinations before the static build.
+
+
+## CMS-managed public pages
+
+Marketing Studio page records can now be exported into `config/published-pages.json` and statically rendered through `app/[...slug]/page.tsx`. The public site supports the Studio's current controlled blocks: Hero, Feature Grid, Rich Text, CTA, and Form.
+
+Core source-owned routes remain reserved. The snapshot/export checks reject a CMS page that attempts to use `/`, `/product`, `/how-it-works`, `/security`, or `/contact`, and reject duplicate CMS slugs.
+
+Published CMS pages are included in the generated sitemap when they are indexable. Rich Text is intentionally exported as safe plaintext in this first release-rendering slice; richer formatting is not silently approximated. A Form block references a published Website API form ID and uses the same exact-form-version submission contract as the contact page.

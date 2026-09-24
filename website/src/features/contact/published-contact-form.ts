@@ -118,8 +118,10 @@ function parsePublishedForm(value: unknown): PublishedContactForm | null {
   };
 }
 
-export async function loadPublishedContactForm(): Promise<PublishedFormLoadResult> {
-  const configuration = resolveContactApiConfig();
+export async function loadPublishedContactForm(
+  formIdOverride?: string
+): Promise<PublishedFormLoadResult> {
+  const configuration = resolveContactApiConfig(formIdOverride);
   if (configuration.kind !== "configured") {
     return configuration;
   }

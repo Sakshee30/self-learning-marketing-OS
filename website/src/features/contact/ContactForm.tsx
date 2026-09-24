@@ -25,6 +25,13 @@ type FormState =
   | { kind: "fallback"; reason: "unconfigured" }
   | { kind: "error"; message: string };
 
+type ContactFormProps = {
+  formId?: string;
+  sourcePath?: string;
+  submitLabel?: string;
+  allowLocalFallback?: boolean;
+};
+
 const fallbackForm: PublishedContactForm = {
   formId: "local-fallback",
   formVersionId: "local-fallback",
@@ -53,7 +60,7 @@ function messageFor(result: ContactSubmissionResult): SubmissionState {
       return {
         kind: "success",
         message:
-          "Your request was accepted by the Website API. CRM, email, and follow-up delivery continue asynchronously."
+          "Your submission was accepted by the Website API. Downstream delivery continues asynchronously."
       };
     case "unconfigured":
       return {
@@ -65,27 +72,27 @@ function messageFor(result: ContactSubmissionResult): SubmissionState {
       return {
         kind: "error",
         message:
-          "This deployment has an incomplete contact-service configuration. No confirmed submission was recorded."
+          "This deployment has an incomplete form-service configuration. No confirmed submission was recorded."
       };
     case "rejected":
       return {
         kind: "error",
         message:
           result.status >= 500
-            ? "The contact service could not accept the request. No success has been recorded."
+            ? "The form service could not accept the submission. No success has been recorded."
             : "Some information does not match the published form you opened. Review the highlighted fields and try again."
       };
     case "timeout":
       return {
         kind: "error",
         message:
-          "The contact service did not confirm acceptance in time. The website is not treating this request as submitted."
+          "The form service did not confirm acceptance in time. The website is not treating this submission as successful."
       };
     case "unavailable":
       return {
         kind: "error",
         message:
-          "The contact service could not be reached. The website is not treating this request as submitted."
+          "The form service could not be reached. The website is not treating this submission as successful."
       };
   }
 }
@@ -114,7 +121,12 @@ function issuesByField(issues: ContactValidationIssue[] | undefined) {
   return new Map((issues ?? []).map((issue) => [issue.field, issue.message]));
 }
 
-export function ContactForm() {
+export function ContactForm({
+  formId,
+  sourcePath = "/contact",
+  submitLabel = "Request access",
+  allowLocalFallback = true
+}: ContactFormProps = {}) {
   const [formState, setFormState] = useState<FormState>({ kind: "loading" });
   const [state, setState] = useState<SubmissionState>({ kind: "idle", message: "" });
   const [fieldIssues, setFieldIssues] = useState<ContactValidationIssue[]>([]);
@@ -124,7 +136,7 @@ export function ContactForm() {
     let cancelled = false;
     setFormState({ kind: "loading" });
 
-    loadPublishedContactForm().then((result) => {
+    loadPublishedContactForm(formId).then((result) => {
       if (cancelled) return;
 
       switch (result.kind) {
@@ -132,13 +144,17 @@ export function ContactForm() {
           setFormState({ kind: "published", form: result.form });
           return;
         case "unconfigured":
-          setFormState({ kind: "fallback", reason: "unconfigured" });
+          if (allowLocalFallback && !formId) {
+            setFormState({ kind: "fallback", reason: "unconfigured" });
+          } else {
+            setFormState({ kind: "error", message: "The Website API is not configured for this form." });
+          }
           return;
         case "misconfigured":
           setFormState({ kind: "error", message: "The website form configuration is incomplete." });
           return;
         case "not_found":
-          setFormState({ kind: "error", message: "No published request-access form is currently available." });
+          setFormState({ kind: "error", message: "This published form is not currently available." });
           return;
         case "timeout":
           setFormState({ kind: "error", message: "The published form configuration did not load in time." });
@@ -163,7 +179,7 @@ export function ContactForm() {
     return () => {
       cancelled = true;
     };
-  }, [reloadKey]);
+  }, [allowLocalFallback, formId, reloadKey]);
 
   const activeForm =
     formState.kind === "published"
@@ -179,11 +195,13 @@ export function ContactForm() {
 
     const form = event.currentTarget;
     setFieldIssues([]);
-    setState({ kind: "submitting", message: "Submitting your request…" });
+    setState({ kind: "submitting", message: "Submitting…" });
 
     const result = await submitContactRequest(
       fieldsFromForm(form, activeForm.schema.fields),
-      formState.kind === "published" ? activeForm.formVersionId : undefined
+      formState.kind === "published" ? activeForm.formVersionId : undefined,
+      formId,
+      sourcePath
     );
 
     if (result.kind === "rejected" && result.issues) {
@@ -325,7 +343,7 @@ export function ContactForm() {
       </div>
 
       <button className="button button-primary" disabled={submitting} type="submit">
-        {submitting ? "Submitting…" : "Request access"}
+        {submitting ? "Submitting…" : submitLabel}
         <span aria-hidden="true">↗</span>
       </button>
 

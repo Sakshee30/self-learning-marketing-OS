@@ -1680,6 +1680,81 @@ p {
   color: #b24358;
 }
 
+
+.cms-block-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.cms-feature-section {
+  background: var(--bg);
+}
+
+.cms-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.cms-feature-card {
+  min-height: 230px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: 0 16px 44px rgba(32, 42, 76, 0.04);
+}
+
+.cms-feature-card > span {
+  display: inline-block;
+  margin-bottom: 38px;
+  color: var(--brand);
+  font-size: 0.68rem;
+  font-weight: 850;
+}
+
+.cms-feature-card h3 {
+  font-size: 1.25rem;
+}
+
+.cms-feature-card p {
+  margin-bottom: 0;
+  font-size: 0.9rem;
+}
+
+.cms-rich-text-section {
+  background: var(--surface);
+}
+
+.cms-reading-width {
+  max-width: var(--reading-width);
+}
+
+.cms-reading-width p {
+  margin-bottom: 0;
+  color: var(--muted-strong);
+  font-size: clamp(1rem, 1.5vw, 1.12rem);
+  line-height: 1.75;
+  white-space: pre-line;
+}
+
+.cms-cta-body {
+  max-width: 680px;
+  margin: 16px 0 0;
+  color: #aeb6c9;
+}
+
+.cms-form-section {
+  background: var(--bg);
+}
+
+.cms-form-section .contact-card {
+  max-width: 820px;
+  margin-inline: auto;
+}
+
 .not-found {
   min-height: 68vh;
   display: flex;
@@ -1844,7 +1919,8 @@ p {
   }
 
   .capability-grid,
-  .trust-grid {
+  .trust-grid,
+  .cms-feature-grid {
     grid-template-columns: 1fr;
   }
 

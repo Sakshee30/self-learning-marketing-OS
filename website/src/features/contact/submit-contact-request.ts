@@ -47,9 +47,11 @@ function parseValidationIssues(value: unknown): ContactValidationIssue[] | undef
 
 export async function submitContactRequest(
   fields: ContactRequestFields,
-  formVersionId?: string
+  formVersionId?: string,
+  formIdOverride?: string,
+  sourcePath = "/contact"
 ): Promise<ContactSubmissionResult> {
-  const configuration = resolveContactApiConfig();
+  const configuration = resolveContactApiConfig(formIdOverride);
 
   if (configuration.kind !== "configured") {
     return { kind: configuration.kind };
@@ -72,7 +74,7 @@ export async function submitContactRequest(
         ...(formVersionId ? { formVersionId } : {}),
         fields,
         source: {
-          path: "/contact"
+          path: sourcePath
         }
       }),
       signal: controller.signal

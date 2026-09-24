@@ -4,8 +4,10 @@ import { resolve } from "node:path";
 const websiteRoot = resolve(import.meta.dirname, "..");
 const routesPath = resolve(websiteRoot, "config/site-routes.json");
 const snapshotPath = resolve(websiteRoot, "config/published-site.json");
+const pagesSnapshotPath = resolve(websiteRoot, "config/published-pages.json");
 const routes = JSON.parse(readFileSync(routesPath, "utf8"));
 const publishedSite = JSON.parse(readFileSync(snapshotPath, "utf8"));
+const publishedPages = JSON.parse(readFileSync(pagesSnapshotPath, "utf8"));
 
 const errors = [];
 const seenKeys = new Set();
@@ -144,6 +146,91 @@ for (const route of routes) {
   }
 }
 
+
+const allowedPageBlocks = new Set(["hero", "featureGrid", "richText", "callToAction", "form"]);
+const seenCmsPaths = new Set();
+
+if (!publishedPages || typeof publishedPages !== "object" || publishedPages.schemaVersion !== 1) {
+  errors.push("config/published-pages.json must use schemaVersion 1.");
+} else if (!Array.isArray(publishedPages.pages)) {
+  errors.push("config/published-pages.json must contain a pages array.");
+} else {
+  for (const [pageIndex, page] of publishedPages.pages.entries()) {
+    const path = `pages[${pageIndex}]`;
+    if (!page || typeof page !== "object") {
+      errors.push(`${path} must be an object.`);
+      continue;
+    }
+
+    if (
+      typeof page.slug !== "string" ||
+      !/^[a-z0-9]+(?:-[a-z0-9]+)*(?:\\/[a-z0-9]+(?:-[a-z0-9]+)*)*$/.test(page.slug)
+    ) {
+      errors.push(`${path}.slug must use lowercase kebab-case path segments.`);
+      continue;
+    }
+
+    const routePath = `/${page.slug}`;
+    if (seenPaths.has(routePath)) {
+      errors.push(`CMS page route "${routePath}" conflicts with a reserved public route.`);
+    }
+    if (seenCmsPaths.has(routePath)) {
+      errors.push(`CMS page route "${routePath}" is duplicated.`);
+    }
+    seenCmsPaths.add(routePath);
+
+    if (typeof page.title !== "string" || page.title.trim().length < 2) {
+      errors.push(`${path}.title must be meaningful.`);
+    }
+    if (typeof page.indexable !== "boolean") {
+      errors.push(`${path}.indexable must be a boolean.`);
+    }
+    if (!Array.isArray(page.blocks)) {
+      errors.push(`${path}.blocks must be an array.`);
+      continue;
+    }
+
+    page.blocks.forEach((block, blockIndex) => {
+      const blockPath = `${path}.blocks[${blockIndex}]`;
+      if (!block || typeof block !== "object" || !allowedPageBlocks.has(block.blockType)) {
+        errors.push(`${blockPath} uses an unsupported block type.`);
+        return;
+      }
+
+      if (block.blockType === "hero" && (typeof block.heading !== "string" || !block.heading.trim())) {
+        errors.push(`${blockPath}.heading is required.`);
+      }
+
+      if (block.blockType === "featureGrid" && (!Array.isArray(block.items) || block.items.length === 0)) {
+        errors.push(`${blockPath}.items must be non-empty.`);
+      }
+
+      if (block.blockType === "richText" && (typeof block.text !== "string" || !block.text.trim())) {
+        errors.push(`${blockPath}.text must be non-empty.`);
+      }
+
+      if (block.blockType === "callToAction") {
+        if (typeof block.heading !== "string" || !block.heading.trim()) {
+          errors.push(`${blockPath}.heading is required.`);
+        }
+        if (typeof block.label !== "string" || !block.label.trim()) {
+          errors.push(`${blockPath}.label is required.`);
+        }
+        if (!isSafeDestination(block.href)) {
+          errors.push(`${blockPath}.href must be site-relative or HTTPS.`);
+        }
+      }
+
+      if (
+        block.blockType === "form" &&
+        (typeof block.formId !== "string" || !/^[a-z0-9][a-z0-9_-]{1,63}$/.test(block.formId))
+      ) {
+        errors.push(`${blockPath}.formId is invalid.`);
+      }
+    });
+  }
+}
+
 for (const requiredFile of [
   "app/not-found.tsx",
   "app/robots.ts",
@@ -151,8 +238,12 @@ for (const requiredFile of [
   "app/manifest.ts",
   "src/content/routes.ts",
   "src/content/published-site.ts",
+  "src/content/published-pages.ts",
+  "src/components/published-page/PublishedPageRenderer.tsx",
   "src/seo/metadata.ts",
-  "config/published-site.json"
+  "config/published-site.json",
+  "config/published-pages.json",
+  "app/[...slug]/page.tsx"
 ]) {
   if (!existsSync(resolve(websiteRoot, requiredFile))) {
     errors.push(`Missing required public-site file: ${requiredFile}`);
@@ -168,5 +259,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `Public website architecture check passed for ${routes.length} routes and the published site snapshot.`
+  `Public website architecture check passed for ${routes.length} core routes, ${publishedPages.pages?.length ?? 0} CMS pages, and the published site snapshot.`
 );
