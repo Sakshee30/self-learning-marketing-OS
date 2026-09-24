@@ -16,12 +16,18 @@ This is the independently deployable content-management boundary for the public 
 - SEO fields for title, description, canonical path, and indexability.
 - PostgreSQL adapter with required secret/database configuration.
 - Focused role-policy tests.
+- Durable form-runtime publication bridge:
+  - publishing a changed CMS form queues a Payload job in the `form-publication` queue
+  - queue payload contains a normalized runtime schema and SHA-256 revision digest
+  - a separate worker calls the Website API authenticated internal form-publication endpoint
+  - Website API delivery failures remain retryable jobs instead of blocking the editor request
+  - repeated delivery of the same revision is safe because the Website API contract is idempotent
 
 The controlled block model deliberately does not allow marketers to insert arbitrary HTML or executable JavaScript.
 
 ## Publishing boundary
 
-Payload draft/version functionality is the editorial storage layer. Publishing a document in this Studio is not yet the complete public release process. A later publishing worker must freeze approved revisions and dependencies into a release manifest, build the static website release, run release checks, promote it, verify delivery, and preserve rollback/takedown behavior.
+Payload draft/version functionality is the editorial storage layer. Publishing a document in this Studio is not yet the complete public release process. Form publication now uses a durable job bridge to synchronize runtime form rules, but a later release workflow must still freeze approved page/navigation/media/form revisions into a release manifest, build the static website release, run release checks, promote it, verify delivery, and preserve rollback/takedown behavior.
 
 ## Development
 
@@ -34,6 +40,18 @@ npm run dev
 ```
 
 Then open the Payload admin URL exposed by the local Next.js app.
+
+Run the form-publication worker as a separate process when Website API synchronization is configured:
+
+```bash
+npm run worker:form-publication
+```
+
+For a one-shot local/operational drain:
+
+```bash
+npm run worker:form-publication:once
+```
 
 ## Verification
 
@@ -53,7 +71,6 @@ The check generates the Payload import map, runs TypeScript, unit tests, a Paylo
 - Navigation/footer/announcement globals and brand settings.
 - Redirect management and broader SEO workspace operations.
 - Media quarantine, malware scanning, derivatives, S3/object storage, usage tracking, and automatic rights-expiry enforcement.
-- Form-runtime publication bridge into the Website API.
 - Lead operations, delivery history/retry controls, reporting, and audit dashboards.
 - Localization.
 - Production database migration/recovery procedures.

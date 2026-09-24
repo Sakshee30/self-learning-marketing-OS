@@ -1,7 +1,7 @@
 {
   "name": "growthos-cms-studio",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "engines": {
     "node": ">=24.15.0"
@@ -14,7 +14,9 @@
     "test": "vitest run --config vitest.config.ts",
     "build": "next build",
     "security:check": "npm audit --omit=dev --audit-level=high",
-    "check": "npm run generate:importmap && npm run typecheck && npm test && npm run build && npm run security:check"
+    "check": "npm run generate:importmap && npm run typecheck && npm test && npm run build && npm run security:check",
+    "worker:form-publication": "payload jobs:run --cron \"*/10 * * * * *\" --queue form-publication",
+    "worker:form-publication:once": "payload jobs:run --queue form-publication --limit 25"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.90.2",

@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { canCreateContent, canDeleteContent, canUpdateContent, isAuthenticated } from '@/access/roles'
+import { queuePublishedFormVersion } from '@/publishing/queue-published-form-version'
 import { enforcePublishingPermission } from '@/workflows/enforce-publishing'
 
 export const Forms: CollectionConfig = {
@@ -18,6 +19,7 @@ export const Forms: CollectionConfig = {
   },
   hooks: {
     beforeChange: [enforcePublishingPermission],
+    afterChange: [queuePublishedFormVersion],
   },
   versions: {
     maxPerDoc: 100,
