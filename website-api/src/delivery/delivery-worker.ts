@@ -1,4 +1,3 @@
-import { pathToFileURL } from "node:url";
 import type { ApiConfig } from "../config/api-config";
 import { DatabasePoolService } from "../database/database-pool.service";
 import { loadDeliveryWorkerConfig } from "./delivery.config";
@@ -42,10 +41,7 @@ export async function runDeliveryWorker() {
   }
 }
 
-const executedDirectly =
-  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
-
-if (executedDirectly) {
+if (require.main === module) {
   runDeliveryWorker().catch((error) => {
     const message = error instanceof Error ? error.message : "Unknown delivery worker failure";
     process.stderr.write(`Delivery worker failed: ${message}\n`);
