@@ -3,11 +3,89 @@ import { resolve } from "node:path";
 
 const websiteRoot = resolve(import.meta.dirname, "..");
 const routesPath = resolve(websiteRoot, "config/site-routes.json");
+const snapshotPath = resolve(websiteRoot, "config/published-site.json");
 const routes = JSON.parse(readFileSync(routesPath, "utf8"));
+const publishedSite = JSON.parse(readFileSync(snapshotPath, "utf8"));
 
 const errors = [];
 const seenKeys = new Set();
 const seenPaths = new Set();
+
+function isSafeDestination(value) {
+  if (typeof value !== "string" || value.trim().length === 0) return false;
+  if (value.startsWith("/") && !value.startsWith("//")) return true;
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function validatePublishedLink(link, path) {
+  if (!link || typeof link !== "object") {
+    errors.push(`${path} must be an object.`);
+    return;
+  }
+  if (typeof link.label !== "string" || link.label.trim().length === 0) {
+    errors.push(`${path}.label must be a non-empty string.`);
+  }
+  if (!isSafeDestination(link.href)) {
+    errors.push(`${path}.href must be site-relative or HTTPS.`);
+  }
+}
+
+if (!publishedSite || typeof publishedSite !== "object" || publishedSite.schemaVersion !== 1) {
+  errors.push("config/published-site.json must use schemaVersion 1.");
+} else {
+  if (!publishedSite.brand || typeof publishedSite.brand !== "object") {
+    errors.push("Published site snapshot must contain brand configuration.");
+  } else {
+    for (const field of ["name", "descriptor", "description"]) {
+      if (
+        typeof publishedSite.brand[field] !== "string" ||
+        publishedSite.brand[field].trim().length === 0
+      ) {
+        errors.push(`Published site brand.${field} must be a non-empty string.`);
+      }
+    }
+  }
+
+  if (!Array.isArray(publishedSite.navigation)) {
+    errors.push("Published site navigation must be an array.");
+  } else {
+    publishedSite.navigation.forEach((link, index) =>
+      validatePublishedLink(link, `navigation[${index}]`)
+    );
+  }
+
+  validatePublishedLink(publishedSite.primaryCta, "primaryCta");
+
+  if (
+    !publishedSite.footer ||
+    typeof publishedSite.footer !== "object" ||
+    !Array.isArray(publishedSite.footer.groups) ||
+    publishedSite.footer.groups.length === 0
+  ) {
+    errors.push("Published site footer must contain at least one group.");
+  } else {
+    publishedSite.footer.groups.forEach((group, groupIndex) => {
+      if (!group || typeof group !== "object") {
+        errors.push(`footer.groups[${groupIndex}] must be an object.`);
+        return;
+      }
+      if (typeof group.title !== "string" || group.title.trim().length === 0) {
+        errors.push(`footer.groups[${groupIndex}].title must be non-empty.`);
+      }
+      if (!Array.isArray(group.links) || group.links.length === 0) {
+        errors.push(`footer.groups[${groupIndex}].links must be non-empty.`);
+      } else {
+        group.links.forEach((link, linkIndex) =>
+          validatePublishedLink(link, `footer.groups[${groupIndex}].links[${linkIndex}]`)
+        );
+      }
+    });
+  }
+}
 
 if (!Array.isArray(routes) || routes.length === 0) {
   errors.push("config/site-routes.json must contain at least one public route.");
@@ -72,7 +150,9 @@ for (const requiredFile of [
   "app/sitemap.ts",
   "app/manifest.ts",
   "src/content/routes.ts",
-  "src/seo/metadata.ts"
+  "src/content/published-site.ts",
+  "src/seo/metadata.ts",
+  "config/published-site.json"
 ]) {
   if (!existsSync(resolve(websiteRoot, requiredFile))) {
     errors.push(`Missing required public-site file: ${requiredFile}`);
@@ -87,4 +167,6 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-console.log(`Public website architecture check passed for ${routes.length} routes.`);
+console.log(
+  `Public website architecture check passed for ${routes.length} routes and the published site snapshot.`
+);

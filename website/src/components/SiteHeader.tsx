@@ -5,7 +5,7 @@ export function SiteHeader() {
   return (
     <header className="site-header">
       <div className="container header-inner">
-        <Link className="brand" href="/" aria-label="GrowthOS home">
+        <Link className="brand" href="/" aria-label={`${siteConfig.name} home`}>
           <span className="brand-mark" aria-hidden="true">
             <span />
             <span />

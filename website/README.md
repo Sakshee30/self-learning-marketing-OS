@@ -95,3 +95,12 @@ The API must provide durable acceptance, validation, consent policy, abuse prote
 When `NEXT_PUBLIC_MARKETING_API_BASE_URL` and `NEXT_PUBLIC_CONTACT_FORM_ID` are configured, the contact page loads the currently published runtime schema from the Website API and renders supported text, email, textarea, select, and checkbox fields. The frontend sends the exact rendered `formVersionId` back with the submission so the backend validates the same version the visitor saw.
 
 If the Website API is not configured, local/static builds retain the existing preview form but do not report a successful submission. If the API is configured but the published schema cannot be loaded, the page fails visibly with a retry action instead of silently rendering stale field definitions.
+
+
+## Published global-content snapshot
+
+The header, navigation, primary CTA, footer groups, and footer governance copy now come from `config/published-site.json`. The file is a frozen release input, not a runtime CMS request.
+
+Marketing Studio exposes versioned Site Navigation and Site Footer globals. In a release workspace, `cms-studio/npm run snapshot:site` exports only their published revisions into this snapshot. Newer CMS drafts therefore cannot change an already-built public release.
+
+`npm run architecture:check` validates the snapshot schema and rejects empty or unsafe link destinations before the static build.

@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { footerGroups, siteConfig } from "@/src/content/site";
+import { footerConfig, footerGroups, siteConfig } from "@/src/content/site";
 
 export function SiteFooter() {
   return (
     <footer className="site-footer">
       <div className="container footer-grid">
         <div className="footer-brand">
-          <Link className="brand" href="/" aria-label="GrowthOS home">
+          <Link className="brand" href="/" aria-label={`${siteConfig.name} home`}>
             <span className="brand-mark" aria-hidden="true">
               <span />
               <span />
@@ -24,7 +24,7 @@ export function SiteFooter() {
           <div className="footer-links" key={group.title}>
             <h2>{group.title}</h2>
             {group.links.map((link) => (
-              <Link href={link.href} key={link.href}>
+              <Link href={link.href} key={`${group.title}:${link.href}`}>
                 {link.label}
               </Link>
             ))}
@@ -33,8 +33,8 @@ export function SiteFooter() {
       </div>
 
       <div className="container footer-bottom">
-        <p>© {new Date().getFullYear()} GrowthOS. Product capabilities are described from the current repository contract.</p>
-        <p>Human approval remains part of consequential execution.</p>
+        <p>© {new Date().getFullYear()} {footerConfig.copyrightText}</p>
+        {footerConfig.governanceText ? <p>{footerConfig.governanceText}</p> : null}
       </div>
     </footer>
   );

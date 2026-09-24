@@ -8,6 +8,8 @@ import { Forms } from '@/collections/Forms'
 import { Media } from '@/collections/Media'
 import { Pages } from '@/collections/Pages'
 import { Users } from '@/collections/Users'
+import { SiteFooter } from '@/globals/SiteFooter'
+import { SiteNavigation } from '@/globals/SiteNavigation'
 import { syncPublishedFormVersion } from '@/jobs/sync-published-form-version'
 
 const filename = fileURLToPath(import.meta.url)
@@ -26,6 +28,7 @@ export default buildConfig({
     user: Users.slug,
   },
   collections: [Users, Pages, Forms, Media],
+  globals: [SiteNavigation, SiteFooter],
   db: postgresAdapter({
     pool: {
       connectionString: requiredEnvironment('DATABASE_URL'),
