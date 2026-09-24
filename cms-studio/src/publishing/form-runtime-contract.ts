@@ -2,6 +2,9 @@ import { createHash } from 'node:crypto'
 
 type UnknownRecord = Record<string, unknown>
 
+const FORM_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{1,63}$/
+const FIELD_NAME_PATTERN = /^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/
+
 export interface RuntimeFormOption {
   label: string
   value: string
@@ -54,13 +57,18 @@ function normalizeOption(value: unknown): RuntimeFormOption {
 
 function normalizeField(value: unknown): RuntimeFormField {
   const field = asRecord(value)
+  const name = requiredString(field.name, 'field name')
+  if (!FIELD_NAME_PATTERN.test(name)) {
+    throw new Error(`Published form field name "${name}" is invalid`)
+  }
+
   const type = requiredString(field.type, 'field type')
   if (!['text', 'email', 'textarea', 'select', 'checkbox'].includes(type)) {
     throw new Error(`Unsupported published form field type: ${type}`)
   }
 
   const normalized: RuntimeFormField = {
-    name: requiredString(field.name, 'field name'),
+    name,
     label: requiredString(field.label, 'field label'),
     type: type as RuntimeFormField['type'],
     required: field.required === true,
@@ -68,6 +76,9 @@ function normalizeField(value: unknown): RuntimeFormField {
 
   if (Array.isArray(field.options) && field.options.length > 0) {
     normalized.options = field.options.map(normalizeOption)
+  }
+  if (normalized.type === 'select' && (!normalized.options || normalized.options.length === 0)) {
+    throw new Error(`Published select field "${name}" requires at least one option`)
   }
 
   const consentDecisionKey = optionalString(field.consentDecisionKey)
@@ -79,13 +90,23 @@ function normalizeField(value: unknown): RuntimeFormField {
 export function createPublishedFormPublication(doc: unknown): PublishedFormPublication {
   const form = asRecord(doc)
   const formId = requiredString(form.formId, 'formId')
+  if (!FORM_ID_PATTERN.test(formId)) {
+    throw new Error(`Published formId "${formId}" is invalid`)
+  }
   if (!Array.isArray(form.fields) || form.fields.length === 0) {
     throw new Error(`Published form "${formId}" has no fields`)
   }
 
-  const schema: RuntimeFormSchema = {
-    fields: form.fields.map(normalizeField),
+  const fields = form.fields.map(normalizeField)
+  const seenNames = new Set<string>()
+  for (const field of fields) {
+    if (seenNames.has(field.name)) {
+      throw new Error(`Published form "${formId}" contains duplicate field "${field.name}"`)
+    }
+    seenNames.add(field.name)
   }
+
+  const schema: RuntimeFormSchema = { fields }
   const name = optionalString(form.name)
   if (name) schema.name = name
 

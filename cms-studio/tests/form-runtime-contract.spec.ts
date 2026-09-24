@@ -69,6 +69,35 @@ describe('published form runtime contract', () => {
     expect(first.sourceRevision).toBe(second.sourceRevision)
   })
 
+  it('rejects a form that would fail the Website API publication contract', () => {
+    expect(() =>
+      createPublishedFormPublication({
+        name: 'Broken form',
+        formId: 'Not Allowed',
+        fields: [{ name: 'email', label: 'Email', type: 'email', required: true }],
+      }),
+    ).toThrow('formId')
+
+    expect(() =>
+      createPublishedFormPublication({
+        name: 'Broken select',
+        formId: 'broken-select',
+        fields: [{ name: 'choice', label: 'Choice', type: 'select', required: true, options: [] }],
+      }),
+    ).toThrow('requires at least one option')
+
+    expect(() =>
+      createPublishedFormPublication({
+        name: 'Duplicate fields',
+        formId: 'duplicate-fields',
+        fields: [
+          { name: 'email', label: 'Email', type: 'email', required: true },
+          { name: 'email', label: 'Email again', type: 'text', required: false },
+        ],
+      }),
+    ).toThrow('duplicate field')
+  })
+
   it('changes the revision when runtime behavior changes', () => {
     const first = createPublishedFormPublication({
       name: 'Contact',
