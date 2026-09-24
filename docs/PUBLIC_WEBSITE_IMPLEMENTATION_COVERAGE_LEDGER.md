@@ -2,7 +2,7 @@
 
 Updated: 24 September 2026
 
-This ledger covers the independently deployable public marketing website in `website/`. It does not describe the authenticated customer SaaS or the privileged platform-control application, and it does not claim that the separate CMS, Website API, workers, infrastructure, or production security controls already exist.
+This ledger tracks the public marketing boundary and its directly supporting website services. The authenticated customer SaaS and privileged platform-control application remain outside this scope. The repository now contains separate `website/`, `website-api/`, and `cms-studio/` boundaries; production infrastructure and complete provider integrations are still separate work.
 
 ## Inspected scope
 
@@ -35,7 +35,7 @@ The customer workspace under `src/` and platform control under `frontend/platfor
 | Design system | Central CSS variables, responsive layouts, focus styles and reduced-motion handling | Browser/assistive-technology qualification is not yet complete |
 | Product claims | Product language derives from the repository product contract | No invented customers, certifications, revenue results or guaranteed outcomes |
 | Contact UI | Required fields, duplicate-submit protection, pending/success/error states | Browser state is not treated as downstream CRM/email delivery proof |
-| Contact transport | Feature-owned submission adapter with 12-second deadline and typed outcomes | Separate Website API still required for durable acceptance |
+| Contact transport | Feature-owned submission adapter with 12-second deadline and typed outcomes | Website API now provides durable submission acceptance when configured |
 | Failure honesty | Unconfigured, misconfigured, rejected, timeout and unavailable states remain distinct | No hardcoded/fake success fallback |
 | Verification | `npm run architecture:check`, TypeScript check, static production build in website CI | Successful CI/build evidence must be read from an actual workflow run |
 
@@ -59,16 +59,15 @@ Confirmed HTTP acceptance OR an explicit failure/unknown state
 
 The browser does not claim CRM delivery, email delivery, qualification, opportunity creation, or customer conversion.
 
-## Deliberately separate future systems
+## Separate supporting systems
 
 The architecture specification requires these to remain separate deployment/ownership boundaries instead of being hidden inside the public website:
 
-- CMS and Marketing Studio.
-- Preview service.
-- Website API.
-- Lead/submission database and transactional outbox.
-- Delivery workers and queue.
-- CRM/email/webhook adapters.
+- CMS and Marketing Studio: foundation exists in `cms-studio/`; broader editorial/publishing workflow remains incomplete.
+- Preview service: not yet implemented.
+- Website API: foundation exists in `website-api/` with durable submissions, consent records, attribution contracts, and transactional outbox.
+- Delivery processing: retryable webhook worker foundation exists; provider-specific CRM/email adapters and operator tooling remain incomplete.
+- CRM/email/webhook adapters: generic webhook delivery exists; named provider adapters remain future work.
 - Media quarantine and derivative processing.
 - Versioned publishing/releases.
 - Infrastructure, CDN, WAF, TLS, secrets and operational monitoring.
@@ -79,15 +78,14 @@ Those systems are not represented by browser mocks or fake success handlers in t
 
 The following remain incomplete or unverified for the public website:
 
-- Payload CMS and PostgreSQL content model.
-- Draft/review/approval/scheduling/rollback publishing workflow.
+- Complete Payload CMS content model beyond the current controlled foundation.
+- Complete draft/review/approval/scheduling/release/rollback publishing workflow.
 - Blog, resources, authors, categories, tags and editorial refresh workflows.
 - Marketing Studio page builder and approved block schemas.
 - Media quarantine, malware scanning, rights tracking and derivative generation.
-- Durable form acceptance, database transaction and outbox.
-- CRM/email/webhook delivery workers, retries and operator-visible delivery history.
-- Consent preference management, consent versioning and withdrawal handling.
-- Analytics event dictionary, attribution, server-side outcome confirmation and experiments.
+- Provider-specific CRM/email delivery adapters and operator-visible retry/history UI.
+- Runtime consent-policy evaluation and destination-specific enforcement beyond stored consent history.
+- Analytics execution, server-side business outcome confirmation and experiments; the versioned event dictionary and attribution contracts now exist.
 - Search, localization and locale-specific routing.
 - Authoritative pricing catalog and checkout integration.
 - Approved privacy, terms, accessibility and other legal content.
@@ -110,8 +108,8 @@ The structure, route ownership, contact failure semantics and build boundaries c
 
 1. Obtain a green public-website CI build with recorded evidence.
 2. Add approved legal/privacy content before publishing consent-dependent tracking.
-3. Implement the separate Website API with durable submission + outbox acceptance.
-4. Add consent and attribution contracts.
-5. Implement CMS/Marketing Studio and versioned publishing as a separate application boundary.
+3. Connect CMS publishing to Website API form-version synchronization and release manifests.
+4. Add provider-specific CRM/email adapters plus authorized delivery-operations tooling.
+5. Add runtime consent-policy enforcement for optional destinations.
 6. Add browser E2E/accessibility checks and representative performance budgets.
 7. Add infrastructure/recovery controls only when deployment requirements are established.

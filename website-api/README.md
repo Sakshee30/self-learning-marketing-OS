@@ -23,6 +23,13 @@ Separate backend boundary for public website operations. This service owns runti
 - versioned marketing event dictionary under `contracts/marketing-events.v1.json`
 - OpenAPI contract
 - unit and PostgreSQL integration tests
+- retryable delivery worker foundation
+  - leases submission outbox events with `FOR UPDATE SKIP LOCKED`
+  - forwards through an explicit webhook provider contract
+  - sends an idempotency key per event
+  - records every delivery attempt
+  - uses bounded exponential retry backoff
+  - dead-letters work after the configured maximum attempt count
 
 A successful `202` means the relevant record and its outbox event were durably committed. It does **not** mean CRM, email, analytics, advertising, or any other downstream destination completed work.
 
@@ -35,6 +42,18 @@ Consent records are append-only. A later record for the same `subjectId` can rep
 ## Attribution boundary
 
 Campaign and touchpoint values are validated for shape and size but remain untrusted marketing attribution data. Missing attribution is stored as `{ "status": "unknown" }` rather than being inferred.
+
+## Delivery worker
+
+The delivery worker is a separate process from the Website API. It currently supports one explicitly configured HTTP webhook destination. The destination can represent an approved internal integration bridge, CRM ingress endpoint, or another controlled receiver.
+
+```bash
+npm run worker:delivery
+```
+
+Required worker configuration is documented in `.env.example`. Delivery success means the configured destination returned an HTTP 2xx response. Failures are recorded and retried with bounded exponential backoff. After the configured maximum attempts, the outbox event is dead-lettered for operator investigation instead of being silently discarded.
+
+The worker does not infer destinations and has no allow-all fallback. Provider-specific CRM/email adapters, operator retry UI, and destination-specific consent enforcement remain separate work.
 
 ## Local setup
 
@@ -64,4 +83,4 @@ CI provisions PostgreSQL, applies migrations, and runs the integration suite.
 
 ## Not yet implemented
 
-CMS authoring, approved legal/privacy content, runtime consent-policy evaluation per destination, analytics execution, CRM/email/webhook delivery workers, operator retry tooling, production edge controls, and recovery/load qualification remain separate phases.
+Approved legal/privacy content, runtime consent-policy evaluation per destination, analytics execution, provider-specific CRM/email adapters, operator retry tooling/UI, production edge controls, and recovery/load qualification remain separate phases.

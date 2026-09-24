@@ -1,11 +1,13 @@
 {
   "name": "growthos-website-api",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/src/main.js",
+    "worker:delivery": "tsx src/delivery/delivery-worker.ts",
+    "worker:delivery:start": "node dist/src/delivery/delivery-worker.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --config vitest.config.ts tests/unit",
     "test:integration": "vitest run --config vitest.config.ts tests/integration",
