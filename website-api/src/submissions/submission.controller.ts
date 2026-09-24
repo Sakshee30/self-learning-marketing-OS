@@ -17,6 +17,7 @@ import {
   submissionBodySchema,
 } from "./submission.contract";
 import {
+  ConsentRecordNotFoundError,
   IdempotencyConflictError,
   PublishedFormNotFoundError,
   SubmissionPersistenceError,
@@ -66,6 +67,9 @@ export class SubmissionController {
       }
       if (error instanceof IdempotencyConflictError) {
         throw new ConflictException({ code: "idempotency_conflict", message: error.message });
+      }
+      if (error instanceof ConsentRecordNotFoundError) {
+        throw new BadRequestException({ code: "invalid_consent_reference", message: error.message });
       }
       if (error instanceof SubmissionPersistenceError) {
         throw new ServiceUnavailableException({

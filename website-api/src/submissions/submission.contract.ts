@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
+import { attributionInputSchema } from "../attribution/attribution.contract";
 
 const scalarFieldValue = z.union([
   z.string().max(5_000),
@@ -26,6 +27,8 @@ export const submissionBodySchema = z
       })
       .strict()
       .default({}),
+    attribution: attributionInputSchema.optional(),
+    consentRecordId: z.string().uuid().optional(),
   })
   .strict();
 

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: GrowthOS Website API
-  version: 0.1.0
+  version: 0.2.0
 paths:
   /health:
     get:
@@ -9,6 +9,49 @@ paths:
       responses:
         "200":
           description: Service is running
+  /v1/consent:
+    post:
+      summary: Durably append a versioned consent preference record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [policyVersion, decisions]
+              properties:
+                subjectId:
+                  type: string
+                  format: uuid
+                  description: Existing opaque consent subject. Omit on the first record to let the API create one.
+                policyVersion:
+                  type: string
+                  minLength: 1
+                  maxLength: 64
+                decisions:
+                  type: object
+                  minProperties: 1
+                  maxProperties: 50
+                  additionalProperties:
+                    enum: [granted, denied]
+                source:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    path:
+                      type: string
+                      maxLength: 2048
+                    locale:
+                      type: string
+                      maxLength: 35
+      responses:
+        "202":
+          description: Consent record and outbox event were durably stored
+        "400":
+          description: Invalid consent record
+        "503":
+          description: Durable consent recording is currently unavailable
   /v1/forms/{formId}/submissions:
     post:
       summary: Durably accept a published website form submission
@@ -68,14 +111,61 @@ paths:
                     campaignId:
                       type: string
                       maxLength: 128
+                consentRecordId:
+                  type: string
+                  format: uuid
+                attribution:
+                  type: object
+                  additionalProperties: false
+                  properties:
+                    pageRevision:
+                      type: string
+                      maxLength: 128
+                    experimentVariant:
+                      type: string
+                      maxLength: 128
+                    firstTouch:
+                      $ref: '#/components/schemas/AttributionTouchpoint'
+                    lastTouch:
+                      $ref: '#/components/schemas/AttributionTouchpoint'
       responses:
         "202":
           description: Submission and outbox event were durably stored
         "400":
-          description: Invalid path, header, or request body
+          description: Invalid path, header, body, or consent reference
         "404":
           description: No published version exists for the requested form
         "409":
           description: Idempotency key was reused for a different request
         "503":
           description: Durable acceptance is currently unavailable
+components:
+  schemas:
+    AttributionTouchpoint:
+      type: object
+      additionalProperties: false
+      properties:
+        campaignId:
+          type: string
+          maxLength: 128
+        utmSource:
+          type: string
+          maxLength: 256
+        utmMedium:
+          type: string
+          maxLength: 256
+        utmCampaign:
+          type: string
+          maxLength: 256
+        utmTerm:
+          type: string
+          maxLength: 256
+        utmContent:
+          type: string
+          maxLength: 256
+        landingPath:
+          type: string
+          maxLength: 2048
+        capturedAt:
+          type: string
+          format: date-time

@@ -1,7 +1,7 @@
 {
   "name": "growthos-website-api",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "build": "tsc -p tsconfig.build.json",
@@ -10,7 +10,8 @@
     "test": "vitest run --config vitest.config.ts tests/unit",
     "test:integration": "vitest run --config vitest.config.ts tests/integration",
     "db:migrate": "tsx scripts/migrate.ts",
-    "check": "npm run typecheck && npm test && npm run build"
+    "check": "npm run typecheck && npm test && npm run build && npm run security:check",
+    "security:check": "npm audit --omit=dev --audit-level=high"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.6",

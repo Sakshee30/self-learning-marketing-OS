@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "events": [
+    {"name":"page_view","owner":"public-website","trigger":"A published page is viewed","allowedFields":["path","pageRevision","referrer","experimentVariant"],"consentRequirement":"resolve-from-policy","deduplicationRule":"one logical page view per navigation"},
+    {"name":"cta_clicked","owner":"public-website","trigger":"A tracked call-to-action is activated","allowedFields":["path","ctaId","pageRevision","experimentVariant"],"consentRequirement":"resolve-from-policy","deduplicationRule":"one event per deliberate activation"},
+    {"name":"form_started","owner":"public-website","trigger":"A visitor first interacts with a published form","allowedFields":["formId","formVersionId","path"],"consentRequirement":"resolve-from-policy","deduplicationRule":"one event per form interaction session"},
+    {"name":"form_validation_failed","owner":"public-website","trigger":"A published form fails client or server validation","allowedFields":["formId","formVersionId","fieldNames","failureClass"],"consentRequirement":"resolve-from-policy","deduplicationRule":"deduplicate identical validation state within one submit attempt"},
+    {"name":"lead_submitted","owner":"website-api","trigger":"A submission and outbox event are durably committed","allowedFields":["submissionId","formId","formVersionId","acceptedAt","attributionStatus"],"consentRequirement":"resolve-from-policy","deduplicationRule":"submissionId"},
+    {"name":"demo_booked","owner":"website-api","trigger":"An authoritative booking integration confirms a booking","allowedFields":["bookingId","submissionId","confirmedAt"],"consentRequirement":"resolve-from-policy","deduplicationRule":"bookingId"},
+    {"name":"resource_downloaded","owner":"public-website","trigger":"An approved resource download is initiated or confirmed","allowedFields":["resourceId","path","pageRevision"],"consentRequirement":"resolve-from-policy","deduplicationRule":"resourceId plus interaction id"},
+    {"name":"trial_started","owner":"customer-app","trigger":"The authoritative customer service confirms trial creation","allowedFields":["workspaceId","trialId","startedAt"],"consentRequirement":"resolve-from-policy","deduplicationRule":"trialId"},
+    {"name":"lead_qualified","owner":"crm-integration","trigger":"An authoritative lead system confirms qualification","allowedFields":["leadId","qualifiedAt"],"consentRequirement":"resolve-from-policy","deduplicationRule":"leadId plus qualification version"},
+    {"name":"opportunity_created","owner":"crm-integration","trigger":"An authoritative CRM confirms opportunity creation","allowedFields":["opportunityId","leadId","createdAt"],"consentRequirement":"resolve-from-policy","deduplicationRule":"opportunityId"},
+    {"name":"customer_converted","owner":"customer-or-crm-service","trigger":"An authoritative system confirms customer conversion","allowedFields":["customerId","conversionId","convertedAt"],"consentRequirement":"resolve-from-policy","deduplicationRule":"conversionId"}
+  ]
+}

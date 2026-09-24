@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { ApiConfig } from "../../src/config/api-config";
 import { DatabasePoolService } from "../../src/database/database-pool.service";
 import { createRequestFingerprint, submissionBodySchema } from "../../src/submissions/submission.contract";
-import { IdempotencyConflictError } from "../../src/submissions/submission.errors";
+import { ConsentRecordNotFoundError, IdempotencyConflictError } from "../../src/submissions/submission.errors";
 import { SubmissionRepository } from "../../src/submissions/submission.repository";
 
 const databaseUrl = process.env.DATABASE_URL;
@@ -56,9 +56,10 @@ describeWithDatabase("SubmissionRepository with PostgreSQL", () => {
     expect(first.replayed).toBe(false);
     expect(first.formVersionId).toBe(formVersionId);
 
-    const stored = await adminPool.query("SELECT count(*)::int AS count FROM website_submissions WHERE id = $1", [first.submissionId]);
+    const stored = await adminPool.query("SELECT attribution, count(*) OVER()::int AS count FROM website_submissions WHERE id = $1", [first.submissionId]);
     const outbox = await adminPool.query("SELECT count(*)::int AS count FROM website_outbox_events WHERE aggregate_id = $1", [first.submissionId]);
     expect(stored.rows[0].count).toBe(1);
+    expect(stored.rows[0].attribution).toEqual({ status: "unknown" });
     expect(outbox.rows[0].count).toBe(1);
 
     const replay = await repository.accept({
@@ -92,5 +93,22 @@ describeWithDatabase("SubmissionRepository with PostgreSQL", () => {
         idempotencyKey: "integration-request-2",
       }),
     ).rejects.toBeInstanceOf(IdempotencyConflictError);
+  });
+
+  it("rejects a submission that references an unknown consent record", async () => {
+    const body = submissionBodySchema.parse({
+      fields: { email: "ada@example.test" },
+      source: {},
+      consentRecordId: randomUUID(),
+    });
+
+    await expect(
+      repository.accept({
+        formId,
+        body,
+        requestFingerprint: createRequestFingerprint(body),
+        idempotencyKey: "integration-request-3",
+      }),
+    ).rejects.toBeInstanceOf(ConsentRecordNotFoundError);
   });
 });

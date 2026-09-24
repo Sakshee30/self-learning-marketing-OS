@@ -12,6 +12,13 @@ export class IdempotencyConflictError extends Error {
   }
 }
 
+export class ConsentRecordNotFoundError extends Error {
+  constructor(readonly consentRecordId: string) {
+    super("The referenced consent record does not exist");
+    this.name = "ConsentRecordNotFoundError";
+  }
+}
+
 export class SubmissionPersistenceError extends Error {
   constructor(cause: unknown) {
     super("Submission persistence is unavailable", { cause });

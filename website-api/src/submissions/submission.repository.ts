@@ -1,9 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { Injectable } from "@nestjs/common";
 import type { PoolClient } from "pg";
+import { normalizeAttribution } from "../attribution/attribution.contract";
 import { DatabasePoolService } from "../database/database-pool.service";
 import type { SubmissionBody, SubmissionReceipt } from "./submission.contract";
 import {
+  ConsentRecordNotFoundError,
   IdempotencyConflictError,
   PublishedFormNotFoundError,
   SubmissionPersistenceError,
@@ -35,7 +37,11 @@ export class SubmissionRepository {
     try {
       return await this.database.transaction((client) => this.acceptInTransaction(client, input));
     } catch (error) {
-      if (error instanceof PublishedFormNotFoundError || error instanceof IdempotencyConflictError) {
+      if (
+        error instanceof PublishedFormNotFoundError ||
+        error instanceof IdempotencyConflictError ||
+        error instanceof ConsentRecordNotFoundError
+      ) {
         throw error;
       }
       throw new SubmissionPersistenceError(error);
@@ -49,6 +55,14 @@ export class SubmissionRepository {
     if (input.idempotencyKey) {
       const existing = await this.findExisting(client, input.formId, input.idempotencyKey);
       if (existing) return this.replay(existing, input);
+    }
+
+    if (input.body.consentRecordId) {
+      const consent = await client.query<{ id: string }>(
+        "SELECT id FROM website_consent_records WHERE id = $1 LIMIT 1",
+        [input.body.consentRecordId],
+      );
+      if (!consent.rows[0]) throw new ConsentRecordNotFoundError(input.body.consentRecordId);
     }
 
     const publishedForm = await client.query<PublishedFormRow>(
@@ -66,10 +80,12 @@ export class SubmissionRepository {
 
     const submissionId = randomUUID();
     const receivedAt = new Date();
+    const attribution = normalizeAttribution(input.body.attribution);
     const inserted = await client.query<ExistingSubmissionRow>(
       `INSERT INTO website_submissions (
-         id, form_id, form_version_id, idempotency_key, request_fingerprint, fields, source, received_at
-       ) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, $8)
+         id, form_id, form_version_id, idempotency_key, request_fingerprint,
+         fields, source, consent_record_id, attribution, received_at
+       ) VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, $8, $9::jsonb, $10)
        ON CONFLICT (form_id, idempotency_key) WHERE idempotency_key IS NOT NULL
        DO NOTHING
        RETURNING id, form_version_id, request_fingerprint, received_at`,
@@ -81,6 +97,8 @@ export class SubmissionRepository {
         input.requestFingerprint,
         JSON.stringify(input.body.fields),
         JSON.stringify(input.body.source),
+        input.body.consentRecordId ?? null,
+        JSON.stringify(attribution),
         receivedAt,
       ],
     );
@@ -109,6 +127,8 @@ export class SubmissionRepository {
           formId: input.formId,
           formVersionId: created.form_version_id,
           acceptedAt: created.received_at.toISOString(),
+          consentRecordId: input.body.consentRecordId ?? null,
+          attributionStatus: attribution.status,
         }),
         created.received_at,
       ],
